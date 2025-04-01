@@ -1,4 +1,8 @@
 import { motion } from 'framer-motion';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { useTheme } from '@/hooks/useTheme';
 
 interface Skill {
   name: string;
@@ -6,81 +10,121 @@ interface Skill {
 }
 
 const leftSkills: Skill[] = [
-  { name: "React.js", percentage: 95 },
-  { name: "Node.js", percentage: 90 },
-  { name: "MongoDB", percentage: 85 },
-  { name: "Express.js", percentage: 88 }
+  { name: 'JavaScript', percentage: 95 },
+  { name: 'React.js', percentage: 90 },
+  { name: 'TypeScript', percentage: 85 },
+  { name: 'HTML/CSS', percentage: 90 },
+  { name: 'Tailwind CSS', percentage: 85 },
 ];
 
 const rightSkills: Skill[] = [
-  { name: "JavaScript/ES6+", percentage: 92 },
-  { name: "HTML5/CSS3", percentage: 98 },
-  { name: "UI/UX Design", percentage: 80 },
-  { name: "Redux/Context API", percentage: 85 }
+  { name: 'Node.js', percentage: 85 },
+  { name: 'Express.js', percentage: 80 },
+  { name: 'MongoDB', percentage: 80 },
+  { name: 'Next.js', percentage: 75 },
+  { name: 'GraphQL', percentage: 70 },
+];
+
+const technologies = [
+  'Redux', 'Jest', 'React Query', 'Git', 'GitHub', 'REST API', 
+  'Framer Motion', 'GSAP', 'Three.js', 'Material UI', 'Firebase',
+  'AWS', 'Docker', 'CI/CD', 'Figma', 'Responsive Design'
 ];
 
 const SkillBar = ({ skill }: { skill: Skill }) => {
+  const { theme } = useTheme();
+  const animation = useScrollAnimation({ threshold: 0.1 });
+  
   return (
-    <div className="space-y-2">
-      <div className="flex justify-between">
+    <div ref={animation.ref} className="mb-6">
+      <div className="flex justify-between mb-1">
         <span className="font-medium">{skill.name}</span>
-        <span>{skill.percentage}%</span>
+        <span className="text-muted-foreground">{skill.percentage}%</span>
       </div>
-      <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-        <motion.div 
-          className="h-full bg-gradient-to-r from-primary to-secondary rounded-full"
-          initial={{ width: 0 }}
-          whileInView={{ width: `${skill.percentage}%` }}
-          viewport={{ once: true }}
-          transition={{ duration: 1, delay: 0.2 }}
-        />
-      </div>
+      <Progress 
+        value={animation.isVisible ? skill.percentage : 0} 
+        className={`h-2 transition-all duration-1000 ease-out ${
+          theme === 'dark' ? 'bg-muted' : 'bg-muted/50'
+        }`}
+      />
     </div>
   );
 };
 
 const Skills = () => {
+  const titleAnimation = useScrollAnimation({ threshold: 0.1 });
+  const subtitleAnimation = useScrollAnimation({ threshold: 0.1, delay: 200 });
+  const techAnimation = useScrollAnimation({ threshold: 0.1, delay: 300 });
+  
   return (
-    <section className="py-20 bg-slate-100 dark:bg-slate-800/50">
-      <div className="container mx-auto px-6">
-        <motion.div 
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2 className="text-3xl md:text-4xl font-bold font-['Poppins'] mb-4">Technical <span className="gradient-text">Skills</span></h2>
-          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-            The technologies I use to create exceptional web experiences.
-          </p>
-        </motion.div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          <motion.div 
-            className="space-y-8"
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
+    <section id="skills" className="py-20 md:py-28 relative">
+      {/* Background overlay */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+      
+      <div className="container mx-auto px-4 md:px-6 relative">
+        {/* Section Header */}
+        <div className="text-center mb-16">
+          <motion.h2
+            ref={titleAnimation.ref}
+            initial={{ opacity: 0, y: 20 }}
+            animate={titleAnimation.isVisible ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5 }}
+            className="text-3xl md:text-4xl font-bold mb-4"
           >
+            My <span className="gradient-text">Skills</span>
+          </motion.h2>
+          
+          <motion.p
+            ref={subtitleAnimation.ref}
+            initial={{ opacity: 0, y: 20 }}
+            animate={subtitleAnimation.isVisible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5 }}
+            className="text-muted-foreground max-w-2xl mx-auto"
+          >
+            A comprehensive collection of technologies and tools I've mastered through years of experience.
+          </motion.p>
+        </div>
+        
+        {/* Skills Progress Bars */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+          <div className="md:border-r border-border pr-0 md:pr-8">
             {leftSkills.map((skill, index) => (
               <SkillBar key={index} skill={skill} />
             ))}
-          </motion.div>
+          </div>
           
-          <motion.div 
-            className="space-y-8"
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
+          <div className="pl-0 md:pl-8">
             {rightSkills.map((skill, index) => (
               <SkillBar key={index} skill={skill} />
             ))}
-          </motion.div>
+          </div>
         </div>
+        
+        {/* Technologies */}
+        <motion.div
+          ref={techAnimation.ref}
+          initial={{ opacity: 0, y: 20 }}
+          animate={techAnimation.isVisible ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5 }}
+          className="mt-12"
+        >
+          <h3 className="text-xl font-bold mb-6 text-center">Other Technologies</h3>
+          
+          <div className="flex flex-wrap justify-center gap-2">
+            {technologies.map((tech, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={techAnimation.isVisible ? { opacity: 1, scale: 1 } : {}}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+              >
+                <Badge variant="outline" className="px-4 py-2 text-sm">
+                  {tech}
+                </Badge>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </section>
   );

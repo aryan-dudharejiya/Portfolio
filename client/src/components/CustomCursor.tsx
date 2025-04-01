@@ -1,73 +1,135 @@
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { useTheme } from '@/hooks/useTheme';
 
 const CustomCursor = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isPointer, setIsPointer] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
+  const [isClicking, setIsClicking] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
-    // Only show custom cursor on desktop
-    if (window.innerWidth > 768) {
-      setIsVisible(true);
+    const onMouseMove = (e: MouseEvent) => {
+      setPosition({ x: e.clientX, y: e.clientY });
+
+      // Check if cursor is over a clickable element
+      const target = e.target as HTMLElement;
+      const clickableElements = ['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'];
       
-      const onMouseMove = (e: MouseEvent) => {
-        setPosition({ x: e.clientX, y: e.clientY });
-      };
+      if (
+        clickableElements.includes(target.tagName) ||
+        target.closest('a') ||
+        target.closest('button') ||
+        target.onclick ||
+        window.getComputedStyle(target).cursor === 'pointer'
+      ) {
+        setIsPointer(true);
+      } else {
+        setIsPointer(false);
+      }
+    };
 
-      const onMouseEnter = () => {
-        setIsVisible(true);
-      };
+    const onMouseDown = () => {
+      setIsClicking(true);
+    };
 
-      const onMouseLeave = () => {
-        setIsVisible(false);
-      };
+    const onMouseUp = () => {
+      setIsClicking(false);
+    };
 
-      // Track hover state on interactive elements
-      const handleLinkHoverStart = () => setIsHovering(true);
-      const handleLinkHoverEnd = () => setIsHovering(false);
+    const onMouseLeave = () => {
+      setIsHidden(true);
+    };
 
-      const links = document.querySelectorAll('a, button');
-      
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseenter', onMouseEnter);
-      document.addEventListener('mouseleave', onMouseLeave);
-      
-      links.forEach(link => {
-        link.addEventListener('mouseenter', handleLinkHoverStart);
-        link.addEventListener('mouseleave', handleLinkHoverEnd);
-      });
+    const onMouseEnter = () => {
+      setIsHidden(false);
+    };
 
-      return () => {
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseenter', onMouseEnter);
-        document.removeEventListener('mouseleave', onMouseLeave);
-        
-        links.forEach(link => {
-          link.removeEventListener('mouseenter', handleLinkHoverStart);
-          link.removeEventListener('mouseleave', handleLinkHoverEnd);
-        });
-      };
-    }
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mouseup', onMouseUp);
+    document.body.addEventListener('mouseleave', onMouseLeave);
+    document.body.addEventListener('mouseenter', onMouseEnter);
+
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mouseup', onMouseUp);
+      document.body.removeEventListener('mouseleave', onMouseLeave);
+      document.body.removeEventListener('mouseenter', onMouseEnter);
+    };
   }, []);
 
-  if (!isVisible) return null;
+  // Media query for mobile devices
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkIfMobile);
+    };
+  }, []);
+
+  // Don't render custom cursor on mobile devices
+  if (isMobile) return null;
 
   return (
-    <motion.div
-      className="custom-cursor hidden lg:block"
-      animate={{
-        x: position.x,
-        y: position.y,
-        scale: isHovering ? 1.5 : 1,
-      }}
-      transition={{
-        type: "spring",
-        damping: 30,
-        stiffness: 200,
-        mass: 0.5,
-      }}
-    />
+    <>
+      {/* Main cursor ring */}
+      <motion.div
+        className="fixed z-50 pointer-events-none rounded-full"
+        style={{
+          left: position.x,
+          top: position.y,
+          backgroundColor: 'transparent',
+          border: `1.5px solid ${theme === 'dark' ? '#EC4899' : '#6366F1'}`, // Theme-based colors
+          opacity: isHidden ? 0 : 0.8,
+        }}
+        animate={{
+          width: isPointer ? 40 : isClicking ? 16 : 24,
+          height: isPointer ? 40 : isClicking ? 16 : 24,
+          x: isPointer ? -20 : isClicking ? -8 : -12,
+          y: isPointer ? -20 : isClicking ? -8 : -12,
+          opacity: isHidden ? 0 : 0.8,
+        }}
+        transition={{
+          type: 'spring',
+          stiffness: 500,
+          damping: 28,
+        }}
+      />
+
+      {/* Inner dot */}
+      <motion.div
+        className="fixed z-50 pointer-events-none rounded-full"
+        style={{
+          left: position.x,
+          top: position.y,
+          backgroundColor: theme === 'dark' ? '#EC4899' : '#6366F1', // Theme-based colors
+          opacity: isHidden ? 0 : isPointer ? 0.5 : 0.8,
+        }}
+        animate={{
+          width: isPointer ? 6 : isClicking ? 12 : 6,
+          height: isPointer ? 6 : isClicking ? 12 : 6,
+          x: -3,
+          y: -3,
+          opacity: isHidden ? 0 : isPointer ? 0.5 : 0.8,
+          scale: isClicking ? 1.5 : 1,
+        }}
+        transition={{
+          type: 'spring',
+          stiffness: 500,
+          damping: 28,
+        }}
+      />
+    </>
   );
 };
 

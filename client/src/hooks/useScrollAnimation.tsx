@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from 'react';
 
 interface ScrollAnimationOptions {
   threshold?: number;
@@ -9,46 +9,49 @@ interface ScrollAnimationOptions {
 export const useScrollAnimation = (
   options: ScrollAnimationOptions = {}
 ) => {
-  const {
-    threshold = 0.1,
-    delay = 0,
-    once = true,
-  } = options;
-  
-  const ref = useRef<HTMLElement>(null);
-  
+  const { threshold = 0.1, delay = 0, once = true } = options;
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
   useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    
+    const currentRef = ref.current;
+    if (!currentRef) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setTimeout(() => {
-              entry.target.classList.add("animate-in");
-              
-              if (once) {
-                observer.unobserve(entry.target);
-              }
-            }, delay);
+            // Add delay if specified
+            if (delay) {
+              setTimeout(() => {
+                setIsVisible(true);
+              }, delay);
+            } else {
+              setIsVisible(true);
+            }
+            
+            // If once is true, unobserve after becoming visible
+            if (once) {
+              observer.unobserve(currentRef);
+            }
           } else if (!once) {
-            entry.target.classList.remove("animate-in");
+            setIsVisible(false);
           }
         });
       },
-      {
-        threshold,
-        rootMargin: "0px 0px -100px 0px"
-      }
+      { threshold }
     );
-    
-    observer.observe(element);
-    
+
+    observer.observe(currentRef);
+
     return () => {
-      if (element) observer.unobserve(element);
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
     };
   }, [threshold, delay, once]);
-  
-  return ref;
+
+  return { ref, isVisible };
 };
+
+export default useScrollAnimation;

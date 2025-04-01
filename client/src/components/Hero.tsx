@@ -1,109 +1,128 @@
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { Button } from '@/components/ui/button';
+import { useTheme } from '@/hooks/useTheme';
+import TypeWriter from '@/components/TypeWriter';
+import ParticlesEffect from '@/components/three/ParticlesEffect';
+import ThreeDModel from '@/components/three/ThreeDModel';
+import { ArrowDown, ExternalLink, Github } from 'lucide-react';
 
 const Hero = () => {
+  const { theme } = useTheme();
+  const titleAnimation = useScrollAnimation({ threshold: 0.1 });
+  const subtitleAnimation = useScrollAnimation({ threshold: 0.1, delay: 200 });
+  const descAnimation = useScrollAnimation({ threshold: 0.1, delay: 400 });
+  const btnAnimation = useScrollAnimation({ threshold: 0.1, delay: 600 });
+  const modelAnimation = useScrollAnimation({ threshold: 0.1, delay: 300 });
+
   return (
-    <section id="home" className="min-h-screen flex items-center pt-20 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-full">
-        <div className="absolute top-20 right-10 w-64 h-64 bg-primary rounded-full opacity-10 filter blur-3xl animate-pulse-slow"></div>
-        <div className="absolute bottom-20 left-10 w-72 h-72 bg-secondary rounded-full opacity-10 filter blur-3xl animate-pulse-slow" style={{ animationDelay: "2s" }}></div>
-      </div>
+    <section id="home" className="relative min-h-screen flex items-center pt-16 overflow-hidden">
+      {/* Background particles */}
+      <ParticlesEffect />
       
-      <div className="container mx-auto px-6 py-12 relative z-10">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-12">
-          <motion.div 
-            className="w-full md:w-1/2 space-y-6"
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+      {/* Content */}
+      <div className="container mx-auto px-4 md:px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10">
+        {/* Left Column - Text */}
+        <div className="flex flex-col justify-center">
+          {/* Greeting */}
+          <motion.div
+            ref={titleAnimation.ref}
+            initial={{ opacity: 0, y: 20 }}
+            animate={titleAnimation.isVisible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5 }}
+            className="mb-2"
           >
-            <div className="space-y-2">
-              <p className="text-primary font-medium font-['Space_Grotesk']">Hello, I'm</p>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-['Poppins'] leading-tight">
-                Alex Morgan
-                <span className="block gradient-text">MERN Stack Developer</span>
-              </h1>
-            </div>
-            
-            <motion.p 
-              className="text-lg md:text-xl text-slate-600 dark:text-slate-300"
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              I create exceptional <span className="font-medium text-primary">web experiences</span> 
-              that convert visitors into clients. Specialized in React, Node.js, and modern web technologies.
-            </motion.p>
-            
-            <motion.div 
-              className="flex flex-wrap gap-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-            >
-              <a 
-                href="#contact" 
-                className="px-8 py-3 rounded-full bg-primary hover:bg-primary/90 text-white font-medium transition-all transform hover:-translate-y-1 shadow-lg shadow-primary/20"
-              >
-                Hire Me
-              </a>
-              <a 
-                href="#projects" 
-                className="px-8 py-3 rounded-full bg-transparent border-2 border-primary text-primary dark:text-primary/90 font-medium hover:bg-primary/10 transition-all transform hover:-translate-y-1"
-              >
-                View Projects
-              </a>
-            </motion.div>
-            
-            <motion.div 
-              className="flex items-center gap-6 pt-6"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.8 }}
-            >
-              <a href="#" className="text-slate-600 hover:text-primary dark:text-slate-400 dark:hover:text-primary/90 transition-colors">
-                <i className="bx bxl-github text-2xl"></i>
-              </a>
-              <a href="#" className="text-slate-600 hover:text-primary dark:text-slate-400 dark:hover:text-primary/90 transition-colors">
-                <i className="bx bxl-linkedin text-2xl"></i>
-              </a>
-              <a href="#" className="text-slate-600 hover:text-primary dark:text-slate-400 dark:hover:text-primary/90 transition-colors">
-                <i className="bx bxl-twitter text-2xl"></i>
-              </a>
-              <a href="#" className="text-slate-600 hover:text-primary dark:text-slate-400 dark:hover:text-primary/90 transition-colors">
-                <i className="bx bxl-dribbble text-2xl"></i>
-              </a>
-            </motion.div>
+            <span className="text-lg md:text-xl font-medium text-primary">
+              Hello, I'm a
+            </span>
           </motion.div>
           
-          <motion.div 
-            className="w-full md:w-1/2 flex justify-center"
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+          {/* Title with gradient text */}
+          <motion.h1
+            ref={subtitleAnimation.ref}
+            initial={{ opacity: 0, y: 20 }}
+            animate={subtitleAnimation.isVisible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
           >
-            <div className="relative">
-              <div className="w-64 h-64 md:w-80 md:h-80 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 absolute -top-6 -left-6"></div>
-              <div className="w-64 h-64 md:w-80 md:h-80 glass rounded-2xl overflow-hidden relative animate-float">
-                <img 
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=500&fit=crop&crop=faces" 
-                  alt="Alex Morgan" 
-                  className="w-full h-full object-cover" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
-                
-                <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <div className="flex flex-wrap gap-2">
-                    <span className="text-xs bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">React</span>
-                    <span className="text-xs bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">Node.js</span>
-                    <span className="text-xs bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">MongoDB</span>
-                    <span className="text-xs bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">Express</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <span className="gradient-text">MERN Stack</span>{" "}
+            <span className="block mt-1">Developer</span>
+          </motion.h1>
+          
+          {/* TypeWriter with roles */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={subtitleAnimation.isVisible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-6"
+          >
+            <TypeWriter
+              texts={[
+                "Frontend Developer",
+                "Backend Engineer",
+                "UI/UX Designer",
+                "React Specialist",
+                "Node.js Expert"
+              ]}
+              className="text-xl md:text-2xl font-medium text-muted-foreground"
+            />
+          </motion.div>
+          
+          {/* Description */}
+          <motion.p
+            ref={descAnimation.ref}
+            initial={{ opacity: 0, y: 20 }}
+            animate={descAnimation.isVisible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5 }}
+            className="text-muted-foreground text-base md:text-lg max-w-xl mb-8"
+          >
+            I craft high-performance, visually stunning web applications using the latest technologies.
+            Specializing in creating exceptional user experiences with React, Node.js, and modern design principles.
+          </motion.p>
+          
+          {/* CTA Buttons */}
+          <motion.div
+            ref={btnAnimation.ref}
+            initial={{ opacity: 0, y: 20 }}
+            animate={btnAnimation.isVisible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5 }}
+            className="flex flex-wrap gap-4"
+          >
+            <Button size="lg" className="rounded-full">
+              View Projects <ExternalLink className="ml-2 h-4 w-4" />
+            </Button>
+            <Button size="lg" variant="outline" className="rounded-full">
+              GitHub <Github className="ml-2 h-4 w-4" />
+            </Button>
+          </motion.div>
+          
+          {/* Scroll down indicator */}
+          <motion.div
+            initial={{ opacity: 0, y: 0 }}
+            animate={{ opacity: 1, y: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity, repeatType: "loop" }}
+            className="hidden md:flex absolute bottom-10 left-1/2 -translate-x-1/2 items-center flex-col"
+          >
+            <span className="text-sm mb-2 text-muted-foreground">Scroll Down</span>
+            <ArrowDown className="h-6 w-6 text-primary" />
           </motion.div>
         </div>
+        
+        {/* Right Column - 3D Model */}
+        <motion.div
+          ref={modelAnimation.ref}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={modelAnimation.isVisible ? { opacity: 1, scale: 1 } : {}}
+          transition={{ duration: 0.8, type: "spring", stiffness: 100 }}
+          className="hidden lg:flex items-center justify-center h-[500px]"
+        >
+          <ThreeDModel />
+        </motion.div>
       </div>
+      
+      {/* Decorative elements */}
+      <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-primary/20 rounded-full filter blur-3xl"></div>
+      <div className="absolute -top-10 -left-10 w-64 h-64 bg-secondary/20 rounded-full filter blur-3xl"></div>
     </section>
   );
 };
