@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { 
@@ -7,6 +7,7 @@ import {
   Calendar, MessageCircle, BookTemplate 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import ThreeDModel from '@/components/three/ThreeDModel';
 
 interface Service {
   icon: React.ReactNode;
@@ -107,6 +108,9 @@ const Services = () => {
     return isMobile ? 0 : 0.1 * index;
   };
   
+  const modelAnimation = useScrollAnimation({ threshold: 0.2 });
+  const modelRef = useRef<HTMLDivElement>(null);
+  
   return (
     <section id="services" className="py-20 md:py-28 relative overflow-hidden">
       {/* Background decoration */}
@@ -138,6 +142,38 @@ const Services = () => {
             from concept to deployment.
           </motion.p>
         </div>
+        
+        {/* 3D Workspace Model - Only visible on desktop */}
+        {!isMobile && (
+          <motion.div
+            ref={modelAnimation.ref}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={modelAnimation.isVisible ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 0.7, type: "spring" }}
+            className="w-full h-[400px] mb-16 rounded-xl overflow-hidden border shadow-lg bg-card/50 backdrop-blur-sm relative"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 opacity-30"></div>
+            <div 
+              ref={modelRef} 
+              className="w-full h-full"
+              data-cursor-text="Interact with Model"
+            >
+              <ThreeDModel 
+                scrollTrigger={true} 
+                modelType="workspace" 
+              />
+            </div>
+            
+            {/* Text overlay */}
+            <div className="absolute left-8 bottom-8 max-w-md p-6 bg-card/80 backdrop-blur-md rounded-lg border shadow-lg">
+              <h3 className="text-xl font-bold mb-2 gradient-text">Cutting-Edge Development</h3>
+              <p className="text-sm text-foreground/80">
+                Experience premium quality development with modern tools and technologies.
+                Bringing your vision to life with precision and innovation.
+              </p>
+            </div>
+          </motion.div>
+        )}
         
         {/* Services grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">

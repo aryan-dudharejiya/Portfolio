@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useMemo } from 'react';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
 import { useTheme } from '@/hooks/useTheme';
@@ -6,16 +6,18 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ThreeDModelProps {
   scrollTrigger?: boolean;
+  modelType?: 'laptop' | 'workspace' | 'abstract';
 }
 
-const ThreeDModel = ({ scrollTrigger = false }: ThreeDModelProps) => {
+const ThreeDModel = ({ scrollTrigger = false, modelType = 'laptop' }: ThreeDModelProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const frameRef = useRef<number>(0);
   const modelRef = useRef<THREE.Group | null>(null);
-  const { theme } = useTheme();
+  const particlesRef = useRef<THREE.Points | null>(null);
+  const { theme, isDark } = useTheme();
   const isMobile = useIsMobile();
   
   // State for interactive features
@@ -23,6 +25,21 @@ const ThreeDModel = ({ scrollTrigger = false }: ThreeDModelProps) => {
   const [interactionStartPos, setInteractionStartPos] = useState({ x: 0, y: 0 });
   const [modelRotation, setModelRotation] = useState({ x: -Math.PI / 12, y: 0, z: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isInView, setIsInView] = useState(false);
+  
+  // Enhanced colors based on theme
+  const themeColors = useMemo(() => {
+    return {
+      primary: isDark ? 0x6366F1 : 0x6366F1,
+      secondary: isDark ? 0xEC4899 : 0xEF4444,
+      accent: isDark ? 0x22D3EE : 0x0EA5E9,
+      background: isDark ? 0x111111 : 0xF8F8F8,
+      surface: isDark ? 0x333333 : 0xF0F0F0,
+      text: isDark ? 0xECECEC : 0x171717,
+      dim: isDark ? 0x444444 : 0xDDDDDD,
+    };
+  }, [isDark]);
   
   // Optimize rendering for mobile devices
   const getOptimalPixelRatio = () => {
@@ -38,30 +55,34 @@ const ThreeDModel = ({ scrollTrigger = false }: ThreeDModelProps) => {
       cancelAnimationFrame(frameRef.current);
     }
 
-    // Scene setup
+    // Enhanced Scene setup with fog for depth
     const scene = new THREE.Scene();
+    if (modelType === 'abstract') {
+      scene.fog = new THREE.FogExp2(isDark ? 0x080808 : 0xf5f5f5, 0.035);
+    }
     sceneRef.current = scene;
 
-    // Camera setup
+    // Camera setup with better perspective
     const camera = new THREE.PerspectiveCamera(
       75,
       containerRef.current.clientWidth / containerRef.current.clientHeight,
       0.1,
       1000
     );
-    camera.position.z = 5;
+    camera.position.z = modelType === 'abstract' ? 10 : 5;
     cameraRef.current = camera;
 
-    // Renderer setup with optimizations
+    // Enhanced renderer setup
     const renderer = new THREE.WebGLRenderer({ 
       alpha: true, 
-      antialias: !isMobile, // Disable antialiasing on mobile for performance
+      antialias: !isMobile,
       powerPreference: 'high-performance',
+      precision: isMobile ? 'mediump' : 'highp',
     });
     renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
     renderer.setPixelRatio(getOptimalPixelRatio());
-    // For Three.js v0.149.0 or later
-    // renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = !isMobile; // Enable shadows on desktop
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     rendererRef.current = renderer;
     
     // Clear the container before appending
@@ -70,155 +91,64 @@ const ThreeDModel = ({ scrollTrigger = false }: ThreeDModelProps) => {
     }
     containerRef.current.appendChild(renderer.domElement);
 
-    // Lighting with optimization
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    // Enhanced lighting
+    const ambientLight = new THREE.AmbientLight(
+      isDark ? 0x333333 : 0xffffff, 
+      0.6
+    );
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    // Main directional light
+    const directionalLight = new THREE.DirectionalLight(
+      isDark ? 0xffffff : 0xffffff, 
+      1
+    );
     directionalLight.position.set(5, 5, 5);
+    directionalLight.castShadow = !isMobile; // Cast shadows on desktop
+    if (directionalLight.shadow) {
+      directionalLight.shadow.bias = -0.001;
+      directionalLight.shadow.mapSize.width = 1024;
+      directionalLight.shadow.mapSize.height = 1024;
+      directionalLight.shadow.camera.near = 0.5;
+      directionalLight.shadow.camera.far = 50;
+    }
     scene.add(directionalLight);
+    
+    // Add accent lights for visual depth
+    const accentLight1 = new THREE.PointLight(themeColors.primary, 1, 10);
+    accentLight1.position.set(-3, 2, 3);
+    scene.add(accentLight1);
+    
+    const accentLight2 = new THREE.PointLight(themeColors.secondary, 0.8, 10);
+    accentLight2.position.set(3, -2, 3);
+    scene.add(accentLight2);
 
-    // Create simplified laptop model
-    const laptopGroup = new THREE.Group();
+    // Create appropriate 3D model based on modelType
+    let model: THREE.Group;
     
-    // Use simpler geometries on mobile
-    const baseGeometry = new THREE.BoxGeometry(
-      3, 
-      0.2, 
-      2, 
-      isMobile ? 1 : 2, 
-      isMobile ? 1 : 2, 
-      isMobile ? 1 : 2
-    );
-    
-    const baseMaterial = new THREE.MeshStandardMaterial({
-      color: theme === 'dark' ? 0x333333 : 0xf0f0f0,
-      metalness: 0.5,
-      roughness: 0.2
-    });
-    
-    const base = new THREE.Mesh(baseGeometry, baseMaterial);
-    laptopGroup.add(base);
-
-    // Create screen of laptop
-    const screenWidth = 3;
-    const screenHeight = 2;
-    const screenDepth = 0.05;
-    
-    const screenBaseGeometry = new THREE.BoxGeometry(
-      screenWidth, 
-      screenHeight, 
-      screenDepth,
-      isMobile ? 1 : 2,
-      isMobile ? 1 : 2,
-      isMobile ? 1 : 2
-    );
-    
-    const screenBaseMaterial = new THREE.MeshStandardMaterial({
-      color: theme === 'dark' ? 0x444444 : 0xdddddd,
-      metalness: 0.5,
-      roughness: 0.2
-    });
-    
-    const screenBase = new THREE.Mesh(screenBaseGeometry, screenBaseMaterial);
-    screenBase.position.y = 1.1; // Position above the base
-    screenBase.position.z = -0.97; // Move back so it's connected to the base
-    screenBase.rotation.x = Math.PI / 6; // Tilt it a bit
-    laptopGroup.add(screenBase);
-
-    // Create screen display (the actual screen part)
-    const screenDisplayGeometry = new THREE.PlaneGeometry(screenWidth - 0.2, screenHeight - 0.2);
-    const screenDisplayMaterial = new THREE.MeshBasicMaterial({
-      color: theme === 'dark' ? 0x6366F1 : 0x6366F1, // Primary color
-      opacity: 0.9,
-      transparent: true
-    });
-    
-    const screenDisplay = new THREE.Mesh(screenDisplayGeometry, screenDisplayMaterial);
-    screenDisplay.position.set(0, 0, 0.03); // Slightly in front of the screen base
-    screenBase.add(screenDisplay); // Make it a child of the screen base
-
-    // Create code pattern texture for the screen - less detailed on mobile
-    const createCodePattern = () => {
-      const canvas = document.createElement('canvas');
-      const size = isMobile ? 128 : 256; // Lower resolution on mobile
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext('2d');
-      
-      if (ctx) {
-        ctx.fillStyle = theme === 'dark' ? '#111111' : '#f8f8f8';
-        ctx.fillRect(0, 0, size, size);
-        
-        ctx.font = isMobile ? '4px monospace' : '6px monospace';
-        ctx.fillStyle = theme === 'dark' ? '#EC4899' : '#6366F1'; // Use theme colors
-        
-        // Generate random code-like pattern - fewer lines on mobile
-        const lineSpacing = isMobile ? 12 : 8;
-        for (let y = 5; y < size; y += lineSpacing) {
-          let line = '';
-          for (let i = 0; i < (isMobile ? 6 : 10); i++) {
-            line += Math.random() > 0.5 ? '1' : '0';
-          }
-          ctx.fillText(line, 5, y);
-          
-          if (y % 24 === 5 && !isMobile) { // Every few lines, skip on mobile
-            ctx.fillText('function()', 50, y);
-          }
-          
-          if (y % 32 === 5 && !isMobile) { // Some different patterns, skip on mobile
-            ctx.fillText('{ return }', 110, y);
-          }
-        }
-        
-        return new THREE.CanvasTexture(canvas);
-      }
-      
-      return null;
-    };
-    
-    const codeTexture = createCodePattern();
-    if (codeTexture) {
-      screenDisplayMaterial.map = codeTexture;
-      screenDisplayMaterial.needsUpdate = true;
+    if (modelType === 'abstract') {
+      // Create abstract floating elements
+      model = createAbstractModel();
+    } else if (modelType === 'workspace') {
+      // Create developer workspace
+      model = createWorkspaceModel();
+    } else {
+      // Default laptop model
+      model = createLaptopModel();
     }
-
-    // Add keyboard keys on the base (skip on mobile for performance)
-    if (!isMobile) {
-      const keySize = 0.15;
-      const keySpacing = 0.02;
-      const keysPerRow = 15;
-      const numRows = 5;
-      const keyStartX = -(keySize + keySpacing) * (keysPerRow - 1) / 2;
-      const keyStartZ = -(keySize + keySpacing) * (numRows - 1) / 2;
-      
-      const keyGeometry = new THREE.BoxGeometry(keySize, keySize / 3, keySize);
-      const keyMaterial = new THREE.MeshStandardMaterial({
-        color: theme === 'dark' ? 0x222222 : 0xeeeeee,
-        metalness: 0.3,
-        roughness: 0.8
-      });
-      
-      for (let row = 0; row < numRows; row++) {
-        for (let col = 0; col < keysPerRow; col++) {
-          const key = new THREE.Mesh(keyGeometry, keyMaterial);
-          key.position.set(
-            keyStartX + col * (keySize + keySpacing),
-            0.15, // Slightly above the base
-            keyStartZ + row * (keySize + keySpacing)
-          );
-          base.add(key);
-        }
-      }
+    
+    // Add particle system background for visual depth
+    if (modelType === 'abstract') {
+      addParticleSystem();
     }
-
-    // Add the laptop to the scene
-    laptopGroup.position.y = -0.5; // Lower it a bit
-    laptopGroup.rotation.x = modelRotation.x;
-    laptopGroup.rotation.y = modelRotation.y;
-    laptopGroup.rotation.z = modelRotation.z;
-    scene.add(laptopGroup);
-    modelRef.current = laptopGroup;
+    
+    // Add the model to the scene
+    model.position.y = -0.5;
+    model.rotation.x = modelRotation.x;
+    model.rotation.y = modelRotation.y;
+    model.rotation.z = modelRotation.z;
+    scene.add(model);
+    modelRef.current = model;
 
     // Animation function with performance optimizations
     let lastTime = 0;
@@ -228,6 +158,35 @@ const ThreeDModel = ({ scrollTrigger = false }: ThreeDModelProps) => {
       // Apply constant gentle rotation when not being interacted with
       if (!scrollTrigger && !isHovered && !isDragging) {
         modelRef.current.rotation.y += 0.005;
+      }
+      
+      // Animate particles if they exist
+      if (particlesRef.current && modelType === 'abstract') {
+        const positions = particlesRef.current.geometry.attributes.position.array as Float32Array;
+        
+        for (let i = 0; i < positions.length; i += 3) {
+          // Wave effect
+          positions[i + 1] += Math.sin((time * 0.001) + (positions[i] * 0.1)) * 0.01;
+        }
+        
+        particlesRef.current.geometry.attributes.position.needsUpdate = true;
+      }
+      
+      // Interactive lighting effect
+      if (isHovered && !isDragging && modelType !== 'abstract') {
+        // Normalize mouse position
+        const normalizedX = (mousePosition.x / window.innerWidth) * 2 - 1;
+        const normalizedY = -(mousePosition.y / window.innerHeight) * 2 + 1;
+        
+        // Move an accent light to follow mouse position slightly
+        if (scene.children.length > 3) {
+          const accentLight = scene.children[3] as THREE.PointLight;
+          gsap.to(accentLight.position, {
+            x: normalizedX * 3,
+            y: normalizedY * 2,
+            duration: 0.5
+          });
+        }
       }
       
       // Limit framerate on mobile for performance
@@ -244,10 +203,8 @@ const ThreeDModel = ({ scrollTrigger = false }: ThreeDModelProps) => {
     
     animate(0);
 
-    // Handle mouse/touch movement for interactive rotation
+    // Enhanced mouse/touch movement for interactive rotation
     const handlePointerMove = (event: MouseEvent | TouchEvent) => {
-      if (!modelRef.current || !isDragging) return;
-      
       const clientX = 'touches' in event 
         ? event.touches[0].clientX 
         : (event as MouseEvent).clientX;
@@ -255,18 +212,23 @@ const ThreeDModel = ({ scrollTrigger = false }: ThreeDModelProps) => {
       const clientY = 'touches' in event 
         ? event.touches[0].clientY 
         : (event as MouseEvent).clientY;
+        
+      // Update mouse position for lighting effects
+      setMousePosition({ x: clientX, y: clientY });
+      
+      if (!modelRef.current || !isDragging) return;
       
       const deltaX = clientX - interactionStartPos.x;
       const deltaY = clientY - interactionStartPos.y;
       
-      // Update model rotation based on drag distance
-      const newRotationY = modelRotation.y + (deltaX * 0.01);
+      // Update model rotation based on drag distance with dampening
+      const newRotationY = modelRotation.y + (deltaX * 0.005);
       const newRotationX = Math.max(
-        -Math.PI / 4, 
-        Math.min(Math.PI / 4, modelRotation.x + (deltaY * 0.01))
+        -Math.PI / 3, 
+        Math.min(Math.PI / 3, modelRotation.x + (deltaY * 0.005))
       );
       
-      // Apply new rotation
+      // Apply new rotation with smoother transition
       setModelRotation({
         x: newRotationX,
         y: newRotationY,
@@ -277,7 +239,8 @@ const ThreeDModel = ({ scrollTrigger = false }: ThreeDModelProps) => {
         gsap.to(modelRef.current.rotation, {
           x: newRotationX,
           y: newRotationY,
-          duration: 0.5
+          duration: 0.3,
+          ease: "power2.out"
         });
       }
       
@@ -285,25 +248,36 @@ const ThreeDModel = ({ scrollTrigger = false }: ThreeDModelProps) => {
       setInteractionStartPos({ x: clientX, y: clientY });
     };
     
-    // Handle mouse hover effect
+    // Enhanced hover effects
     const handlePointerEnter = () => {
       setIsHovered(true);
       
-      // Add subtle hover animation
+      // Set data attribute for custom cursor
+      containerRef.current?.setAttribute('data-cursor-text', 'Drag to Rotate');
+      
+      // Advanced hover animations
       if (modelRef.current) {
+        // Create a more dramatic hover effect
         gsap.to(modelRef.current.position, {
-          y: -0.3, // Lift the model slightly
-          duration: 0.5,
-          ease: "power2.out"
+          y: -0.2, 
+          duration: 0.8,
+          ease: "elastic.out(1, 0.3)"
         });
         
-        // Add a subtle pulsing effect to indicate interactivity
+        // Add a smooth pulsing effect
         gsap.to(modelRef.current.scale, {
           x: 1.05,
           y: 1.05,
           z: 1.05,
+          duration: 0.8,
+          ease: "elastic.out(1, 0.3)"
+        });
+        
+        // Add a slight rotation for a more organic feel
+        gsap.to(modelRef.current.rotation, {
+          z: modelRotation.z + 0.05,
           duration: 0.5,
-          ease: "elastic.out(1, 0.5)"
+          ease: "power2.out"
         });
       }
     };
@@ -312,25 +286,39 @@ const ThreeDModel = ({ scrollTrigger = false }: ThreeDModelProps) => {
       setIsHovered(false);
       setIsDragging(false);
       
-      // Return to original position and scale
+      // Remove data attribute for custom cursor
+      containerRef.current?.removeAttribute('data-cursor-text');
+      
+      // Return to original position with a smoother animation
       if (modelRef.current) {
         gsap.to(modelRef.current.position, {
           y: -0.5,
-          duration: 0.5
+          duration: 0.6,
+          ease: "elastic.out(1, 0.5)"
         });
         
         gsap.to(modelRef.current.scale, {
           x: 1,
           y: 1,
           z: 1,
-          duration: 0.5
+          duration: 0.6,
+          ease: "back.out(1.5)"
+        });
+        
+        gsap.to(modelRef.current.rotation, {
+          z: modelRotation.z,
+          duration: 0.5,
+          ease: "power2.out"
         });
       }
     };
     
-    // Handle start of drag interaction
+    // Handle start of drag interaction with visual feedback
     const handlePointerDown = (event: MouseEvent | TouchEvent) => {
       setIsDragging(true);
+      
+      // Update cursor data attribute
+      containerRef.current?.setAttribute('data-cursor-text', 'Rotating');
       
       const clientX = 'touches' in event 
         ? event.touches[0].clientX 
@@ -348,12 +336,39 @@ const ThreeDModel = ({ scrollTrigger = false }: ThreeDModelProps) => {
           y: modelRef.current.rotation.y,
           z: modelRef.current.rotation.z
         });
+        
+        // Add a quick "grabbing" animation
+        gsap.to(modelRef.current.scale, {
+          x: 0.95,
+          y: 0.95,
+          z: 0.95,
+          duration: 0.2,
+          ease: "power2.out"
+        });
       }
     };
     
-    // Handle end of drag interaction
+    // Enhanced drag end animation
     const handlePointerUp = () => {
       setIsDragging(false);
+      
+      // Restore cursor text
+      if (isHovered) {
+        containerRef.current?.setAttribute('data-cursor-text', 'Drag to Rotate');
+      } else {
+        containerRef.current?.removeAttribute('data-cursor-text');
+      }
+      
+      // Add a nice "release" animation
+      if (modelRef.current) {
+        gsap.to(modelRef.current.scale, {
+          x: isHovered ? 1.05 : 1,
+          y: isHovered ? 1.05 : 1,
+          z: isHovered ? 1.05 : 1,
+          duration: 0.5,
+          ease: "elastic.out(1, 0.3)"
+        });
+      }
     };
 
     // Add different event listeners for mobile vs desktop
@@ -369,7 +384,7 @@ const ThreeDModel = ({ scrollTrigger = false }: ThreeDModelProps) => {
       window.addEventListener('mouseup', handlePointerUp);
     }
 
-    // Handle scroll for scroll-triggered animations
+    // Enhanced scroll-triggered animations
     const handleScroll = () => {
       if (!modelRef.current || !scrollTrigger) return;
       
@@ -377,32 +392,71 @@ const ThreeDModel = ({ scrollTrigger = false }: ThreeDModelProps) => {
       
       if (containerRef.current) {
         const containerRect = containerRef.current.getBoundingClientRect();
-        const containerVisibleRatio = 1 - (containerRect.top / windowHeight);
+        const containerCenter = containerRect.top + (containerRect.height / 2);
+        const viewportCenter = windowHeight / 2;
+        const distanceFromCenter = Math.abs(containerCenter - viewportCenter);
+        const maxDistance = windowHeight * 0.6; // 60% of viewport height
         
-        if (containerVisibleRatio > 0 && containerVisibleRatio < 1) {
-          // More dramatic scroll-based animation
+        // Calculate how close the container is to the center of the viewport
+        const proximityToCenter = 1 - (distanceFromCenter / maxDistance);
+        const isVisible = proximityToCenter > 0;
+        
+        setIsInView(isVisible);
+        
+        if (isVisible) {
+          const containerVisibleRatio = Math.max(0, Math.min(1, proximityToCenter));
+          
+          // More dramatic scroll-based animations
           gsap.to(modelRef.current.rotation, {
             y: containerVisibleRatio * Math.PI * 2, // Full rotation
-            x: -Math.PI / 12 + (containerVisibleRatio * 0.2), // Subtle tilt
-            duration: 0.5
+            x: -Math.PI / 12 + (containerVisibleRatio * 0.3), // Enhanced tilt
+            duration: 0.7,
+            ease: "power2.out"
           });
           
-          // Scale up as it comes into view
+          // Scale up as it comes into view with bounce effect
           gsap.to(modelRef.current.scale, {
-            x: 0.8 + (containerVisibleRatio * 0.3),
-            y: 0.8 + (containerVisibleRatio * 0.3),
-            z: 0.8 + (containerVisibleRatio * 0.3),
-            duration: 0.5
+            x: 0.8 + (containerVisibleRatio * 0.4),
+            y: 0.8 + (containerVisibleRatio * 0.4),
+            z: 0.8 + (containerVisibleRatio * 0.4),
+            duration: 0.7,
+            ease: "back.out(1.7)"
           });
+          
+          // Add vertical movement based on scroll position
+          gsap.to(modelRef.current.position, {
+            y: -0.5 + (containerVisibleRatio * 0.3),
+            duration: 0.7,
+            ease: "power2.out"
+          });
+          
+          // Also animate lights based on scroll
+          if (scene.children.length > 3) {
+            const accentLight1 = scene.children[3] as THREE.PointLight;
+            gsap.to(accentLight1, {
+              intensity: 0.5 + containerVisibleRatio * 1.5,
+              duration: 0.7
+            });
+          }
+          
+          if (scene.children.length > 4) {
+            const accentLight2 = scene.children[4] as THREE.PointLight;
+            gsap.to(accentLight2, {
+              intensity: 0.3 + containerVisibleRatio * 1.2,
+              duration: 0.7
+            });
+          }
         }
       }
     };
     
     if (scrollTrigger) {
       window.addEventListener('scroll', handleScroll);
+      // Trigger initial scroll calculation
+      handleScroll();
     }
 
-    // Handle window resize with debounce for performance
+    // Handle window resize with improved debounce for performance
     let resizeTimeout: number;
     const handleResize = () => {
       clearTimeout(resizeTimeout);
@@ -419,10 +473,839 @@ const ThreeDModel = ({ scrollTrigger = false }: ThreeDModelProps) => {
         // Update renderer size
         rendererRef.current.setPixelRatio(getOptimalPixelRatio());
         rendererRef.current.setSize(width, height);
+        
+        // Retrigger scroll handler to adjust animations
+        if (scrollTrigger) {
+          handleScroll();
+        }
       }, 250); // Debounce resize events
     };
     
     window.addEventListener('resize', handleResize);
+
+    // Create the laptop model
+    function createLaptopModel(): THREE.Group {
+      const laptopGroup = new THREE.Group();
+      
+      // Higher quality geometries on desktop
+      const segments = isMobile ? 1 : 3;
+      
+      // Create laptop base with rounded corners
+      const baseGeometry = new THREE.BoxGeometry(
+        3, 
+        0.2, 
+        2, 
+        segments * 2, 
+        segments, 
+        segments * 2
+      );
+      
+      // Apply rounded corners to the base
+      if (!isMobile) {
+        const basePositions = baseGeometry.attributes.position.array;
+        const baseRadius = 0.1;
+        
+        for (let i = 0; i < basePositions.length; i += 3) {
+          const x = basePositions[i];
+          const z = basePositions[i + 2];
+          
+          // Round the corners by moving the vertices inward
+          const absX = Math.abs(x);
+          const absZ = Math.abs(z);
+          
+          if (absX > 1.4 && absZ > 0.9) {
+            const normX = (absX - 1.4) / 0.1;
+            const normZ = (absZ - 0.9) / 0.1;
+            
+            if (normX > 0 && normZ > 0) {
+              const radius = Math.min(normX, normZ) * baseRadius;
+              basePositions[i] = x > 0 ? x - radius : x + radius;
+              basePositions[i + 2] = z > 0 ? z - radius : z + radius;
+            }
+          }
+        }
+      }
+      
+      // Enhanced metallic material based on theme
+      const baseMaterial = new THREE.MeshPhysicalMaterial({
+        color: themeColors.surface,
+        metalness: 0.6,
+        roughness: 0.2,
+        reflectivity: 0.5,
+        clearcoat: 0.3,
+        clearcoatRoughness: 0.2
+      });
+      
+      const base = new THREE.Mesh(baseGeometry, baseMaterial);
+      base.castShadow = !isMobile;
+      base.receiveShadow = !isMobile;
+      laptopGroup.add(base);
+      
+      // Use higher quality screen
+      const screenWidth = 3;
+      const screenHeight = 2;
+      const screenDepth = 0.05;
+      
+      // Create screen with better model and materials
+      const screenBaseGeometry = new THREE.BoxGeometry(
+        screenWidth, 
+        screenHeight, 
+        screenDepth,
+        segments * 2,
+        segments * 2,
+        segments
+      );
+      
+      // Enhanced screen material
+      const screenBaseMaterial = new THREE.MeshPhysicalMaterial({
+        color: themeColors.dim,
+        metalness: 0.5,
+        roughness: 0.3,
+        reflectivity: 0.2,
+        clearcoat: 0.1
+      });
+      
+      const screenBase = new THREE.Mesh(screenBaseGeometry, screenBaseMaterial);
+      screenBase.position.y = 1.1; // Position above the base
+      screenBase.position.z = -0.97; // Move back so it's connected to the base
+      screenBase.rotation.x = Math.PI / 6; // Tilt it a bit
+      screenBase.castShadow = !isMobile;
+      screenBase.receiveShadow = !isMobile;
+      laptopGroup.add(screenBase);
+      
+      // Create a more visually appealing screen display
+      const screenDisplayGeometry = new THREE.PlaneGeometry(screenWidth - 0.2, screenHeight - 0.2, 1, 1);
+      
+      // Create a more sophisticated screen material with glow effect
+      const screenDisplayMaterial = new THREE.MeshBasicMaterial({
+        color: themeColors.primary,
+        opacity: 0.9,
+        transparent: true
+      });
+      
+      const screenDisplay = new THREE.Mesh(screenDisplayGeometry, screenDisplayMaterial);
+      screenDisplay.position.set(0, 0, 0.03); // Slightly in front of the screen base
+      screenBase.add(screenDisplay); // Make it a child of the screen base
+      
+      // Create enhanced code pattern texture for the screen
+      const createCodePattern = () => {
+        const canvas = document.createElement('canvas');
+        const size = isMobile ? 256 : 512; // Higher resolution textures
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        
+        if (ctx) {
+          // Fill with a gradient background
+          const gradient = ctx.createLinearGradient(0, 0, 0, size);
+          gradient.addColorStop(0, isDark ? '#111827' : '#f9fafb');
+          gradient.addColorStop(1, isDark ? '#1f2937' : '#f3f4f6');
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, size, size);
+          
+          // Generate a more realistic code pattern
+          const lineHeight = isMobile ? 10 : 14;
+          ctx.font = isMobile ? '8px monospace' : '12px monospace';
+          
+          // Add line numbers
+          ctx.fillStyle = isDark ? '#6B7280' : '#9CA3AF';
+          for (let y = 1; y <= 30; y++) {
+            ctx.fillText(String(y).padStart(2, ' '), 5, y * lineHeight);
+          }
+          
+          // Generate random code patterns that look more realistic
+          const codeElements = [
+            'function', 'const', 'let', 'var', 'return', 
+            'if', 'else', 'for', 'while', 'async', 'await', 
+            'import', 'export', 'class', 'interface'
+          ];
+          
+          const symbols = ['()', '{}', '[]', '=>', ';', ',', '.', '=', '+', '-', '*', '/'];
+          
+          const getRandomCode = () => {
+            const type = Math.random();
+            if (type < 0.3) {
+              return codeElements[Math.floor(Math.random() * codeElements.length)];
+            } else if (type < 0.5) {
+              return symbols[Math.floor(Math.random() * symbols.length)];
+            } else {
+              // Generate variable-like names
+              const len = Math.floor(Math.random() * 8) + 2;
+              let result = '';
+              const chars = 'abcdefghijklmnopqrstuvwxyz';
+              for (let i = 0; i < len; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+              }
+              return result;
+            }
+          };
+          
+          // Create syntax highlighting effect
+          const syntaxColors = {
+            keywords: isDark ? '#EC4899' : '#D946EF', // pink/purple
+            variables: isDark ? '#22D3EE' : '#0EA5E9', // cyan/blue
+            strings: isDark ? '#10B981' : '#059669', // green
+            comments: isDark ? '#6B7280' : '#9CA3AF', // gray
+            functions: isDark ? '#F59E0B' : '#D97706', // amber
+          };
+          
+          // Generate random code with syntax highlighting
+          for (let y = 1; y <= 30; y++) {
+            let linePos = 30; // Start after line numbers
+            
+            // Indentation
+            const indent = Math.floor(Math.random() * 4);
+            linePos += indent * 12;
+            
+            const elementCount = Math.floor(Math.random() * 6) + 1;
+            
+            for (let i = 0; i < elementCount; i++) {
+              const code = getRandomCode();
+              
+              // Syntax highlighting based on content
+              if (codeElements.includes(code)) {
+                ctx.fillStyle = syntaxColors.keywords;
+              } else if (code.length > 1 && symbols.includes(code)) {
+                ctx.fillStyle = syntaxColors.variables;
+              } else if (code.startsWith('"') || code.startsWith("'")) {
+                ctx.fillStyle = syntaxColors.strings;
+              } else if (code.startsWith('//')) {
+                ctx.fillStyle = syntaxColors.comments;
+                ctx.fillText(code + ' '.repeat(30), linePos, y * lineHeight);
+                break; // Comments consume the rest of the line
+              } else if (code.endsWith('()')) {
+                ctx.fillStyle = syntaxColors.functions;
+              } else {
+                // Random coloring for variety
+                const colorKeys = Object.keys(syntaxColors) as Array<keyof typeof syntaxColors>;
+                ctx.fillStyle = syntaxColors[colorKeys[Math.floor(Math.random() * colorKeys.length)]];
+              }
+              
+              ctx.fillText(code, linePos, y * lineHeight);
+              linePos += (code.length * (isMobile ? 5 : 7)) + 5;
+            }
+          }
+          
+          // Add cursor blinking effect at a random position
+          const cursorLine = Math.floor(Math.random() * 30) + 1;
+          const cursorPos = Math.floor(Math.random() * 300) + 50;
+          ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
+          ctx.fillRect(cursorPos, (cursorLine * lineHeight) - 10, 2, 14);
+          
+          return new THREE.CanvasTexture(canvas);
+        }
+        
+        return null;
+      };
+      
+      const codeTexture = createCodePattern();
+      if (codeTexture) {
+        screenDisplayMaterial.map = codeTexture;
+        screenDisplayMaterial.needsUpdate = true;
+      }
+      
+      // Add keyboard keys on the base with improved quality on desktop
+      if (!isMobile) {
+        const keySize = 0.15;
+        const keySpacing = 0.02;
+        const keysPerRow = 15;
+        const numRows = 5;
+        const keyStartX = -(keySize + keySpacing) * (keysPerRow - 1) / 2;
+        const keyStartZ = -(keySize + keySpacing) * (numRows - 1) / 2;
+        
+        // Create a more rounded key geometry
+        const keyGeometry = new THREE.BoxGeometry(keySize, keySize / 4, keySize, 2, 1, 2);
+        
+        // Apply rounded corners to keys
+        const keyPositions = keyGeometry.attributes.position.array;
+        const keyRadius = 0.02;
+        
+        for (let i = 0; i < keyPositions.length; i += 3) {
+          const y = keyPositions[i + 1];
+          
+          // Only round the top face
+          if (y > 0) {
+            const x = keyPositions[i];
+            const z = keyPositions[i + 2];
+            
+            // Get distance from center of the top face
+            const distX = Math.abs(x) / (keySize / 2);
+            const distZ = Math.abs(z) / (keySize / 2);
+            
+            // Apply rounded effect to corners
+            if (distX > 0.7 && distZ > 0.7) {
+              const cornerDist = Math.sqrt(distX * distX + distZ * distZ);
+              if (cornerDist > 1.0) {
+                const normCorner = (cornerDist - 1.0) / 0.414; // Max distance beyond 1.0 is sqrt(2)-1
+                const adjustY = normCorner * keyRadius;
+                keyPositions[i + 1] -= adjustY;
+              }
+            }
+          }
+        }
+        
+        // Better key material with subtle variance
+        const specialKeys = [0, 13, 14, 28, 42, 56, 70]; // For visual variety
+        const specialKeyMaterial = new THREE.MeshPhysicalMaterial({
+          color: isDark ? 0x444444 : 0xe0e0e0,
+          metalness: 0.2,
+          roughness: 0.8,
+          clearcoat: 0.2
+        });
+        
+        // Add all keyboard keys with realistic arrangement
+        for (let row = 0; row < numRows; row++) {
+          const rowOffset = row * 0.05; // Stagger keys for visual interest
+          
+          for (let col = 0; col < keysPerRow; col++) {
+            const index = row * keysPerRow + col;
+            const isSpecialKey = specialKeys.includes(index);
+            
+            // Create slightly varied key materials for realism
+            const hueVariation = (Math.random() - 0.5) * 0.05;
+            const keyMaterial = new THREE.MeshStandardMaterial({
+              color: new THREE.Color().setHSL(
+                0, 
+                0, 
+                isDark ? 0.15 + hueVariation : 0.9 + hueVariation
+              ),
+              metalness: 0.3,
+              roughness: 0.9
+            });
+            
+            const key = new THREE.Mesh(
+              keyGeometry, 
+              isSpecialKey ? specialKeyMaterial : keyMaterial
+            );
+            
+            key.position.set(
+              keyStartX + col * (keySize + keySpacing) + rowOffset,
+              0.12, // Slightly above the base
+              keyStartZ + row * (keySize + keySpacing)
+            );
+            
+            // Add subtle random rotation for realism
+            if (!isSpecialKey) {
+              key.rotation.z = (Math.random() - 0.5) * 0.03;
+              key.rotation.x = (Math.random() - 0.5) * 0.03;
+            }
+            
+            key.castShadow = true;
+            base.add(key);
+          }
+        }
+        
+        // Add a touchpad
+        const touchpadWidth = 1.2;
+        const touchpadHeight = 0.8;
+        const touchpadGeometry = new THREE.BoxGeometry(touchpadWidth, 0.02, touchpadHeight);
+        const touchpadMaterial = new THREE.MeshPhysicalMaterial({
+          color: isDark ? 0x222222 : 0xd0d0d0,
+          metalness: 0.5,
+          roughness: 0.3,
+          clearcoat: 0.5
+        });
+        
+        const touchpad = new THREE.Mesh(touchpadGeometry, touchpadMaterial);
+        touchpad.position.set(0, 0.12, 0.5); // Center in the lower half
+        base.add(touchpad);
+      }
+      
+      // Add an Apple-like logo on the back of the screen
+      const logoSize = 0.5;
+      const logoGeometry = new THREE.CircleGeometry(logoSize / 2, 32);
+      const logoMaterial = new THREE.MeshStandardMaterial({
+        color: themeColors.primary,
+        metalness: 0.8,
+        roughness: 0.2,
+        emissive: themeColors.primary,
+        emissiveIntensity: 0.2
+      });
+      
+      const logo = new THREE.Mesh(logoGeometry, logoMaterial);
+      logo.position.set(0, screenHeight / 2 - logoSize / 2 - 0.2, -0.03); // Center on the back
+      logo.rotation.y = Math.PI; // Face the back
+      screenBase.add(logo);
+      
+      return laptopGroup;
+    }
+    
+    // Create a developer workspace model
+    function createWorkspaceModel(): THREE.Group {
+      const workspaceGroup = new THREE.Group();
+      
+      // Create a desk surface
+      const deskWidth = 4;
+      const deskDepth = 2;
+      const deskHeight = 0.1;
+      
+      const deskGeometry = new THREE.BoxGeometry(deskWidth, deskHeight, deskDepth);
+      const deskMaterial = new THREE.MeshStandardMaterial({
+        color: isDark ? 0x362617 : 0x8B5A2B, // Wood color
+        roughness: 0.7,
+        metalness: 0.1
+      });
+      
+      const desk = new THREE.Mesh(deskGeometry, deskMaterial);
+      desk.receiveShadow = !isMobile;
+      workspaceGroup.add(desk);
+      
+      // Add a simplified laptop
+      const laptopGroup = new THREE.Group();
+      
+      // Laptop base
+      const laptopBaseGeometry = new THREE.BoxGeometry(1.2, 0.05, 0.8);
+      const laptopBaseMaterial = new THREE.MeshStandardMaterial({
+        color: isDark ? 0x333333 : 0xdddddd,
+        metalness: 0.6,
+        roughness: 0.2
+      });
+      
+      const laptopBase = new THREE.Mesh(laptopBaseGeometry, laptopBaseMaterial);
+      laptopBase.position.set(0, deskHeight + 0.03, 0);
+      laptopBase.castShadow = !isMobile;
+      laptopGroup.add(laptopBase);
+      
+      // Laptop screen
+      const screenGeometry = new THREE.BoxGeometry(1.2, 0.8, 0.05);
+      const screenMaterial = new THREE.MeshStandardMaterial({
+        color: isDark ? 0x222222 : 0xaaaaaa,
+        metalness: 0.5,
+        roughness: 0.3
+      });
+      
+      const screen = new THREE.Mesh(screenGeometry, screenMaterial);
+      screen.position.set(0, 0.45, -0.4);
+      screen.rotation.x = -Math.PI / 6;
+      screen.castShadow = !isMobile;
+      laptopGroup.add(screen);
+      
+      // Screen display
+      const displayGeometry = new THREE.PlaneGeometry(1.1, 0.7);
+      const displayMaterial = new THREE.MeshBasicMaterial({
+        color: themeColors.primary,
+        opacity: 0.9,
+        transparent: true
+      });
+      
+      const display = new THREE.Mesh(displayGeometry, displayMaterial);
+      display.position.set(0, 0, 0.03);
+      screen.add(display);
+      
+      // Add the laptop to the desk, positioned to the side
+      laptopGroup.position.set(-1, 0, 0);
+      workspaceGroup.add(laptopGroup);
+      
+      // Add a monitor
+      const monitorStandGeometry = new THREE.CylinderGeometry(0.1, 0.15, 0.5, 16);
+      const monitorStandMaterial = new THREE.MeshStandardMaterial({
+        color: isDark ? 0x444444 : 0xcccccc,
+        metalness: 0.8,
+        roughness: 0.2
+      });
+      
+      const monitorStand = new THREE.Mesh(monitorStandGeometry, monitorStandMaterial);
+      monitorStand.position.set(0.5, deskHeight + 0.25, -0.5);
+      monitorStand.castShadow = !isMobile;
+      workspaceGroup.add(monitorStand);
+      
+      const monitorFrameGeometry = new THREE.BoxGeometry(1.8, 1.2, 0.08);
+      const monitorFrameMaterial = new THREE.MeshStandardMaterial({
+        color: isDark ? 0x111111 : 0x222222,
+        metalness: 0.5,
+        roughness: 0.5
+      });
+      
+      const monitorFrame = new THREE.Mesh(monitorFrameGeometry, monitorFrameMaterial);
+      monitorFrame.position.set(0.5, deskHeight + 1.1, -0.5);
+      monitorFrame.castShadow = !isMobile;
+      workspaceGroup.add(monitorFrame);
+      
+      const monitorScreenGeometry = new THREE.PlaneGeometry(1.7, 1.1);
+      const monitorScreenMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffffff
+      });
+      
+      const monitorScreen = new THREE.Mesh(monitorScreenGeometry, monitorScreenMaterial);
+      monitorScreen.position.set(0, 0, 0.04);
+      monitorFrame.add(monitorScreen);
+      
+      // Create screen content texture
+      const createScreenContent = () => {
+        const canvas = document.createElement('canvas');
+        const size = isMobile ? 256 : 512;
+        canvas.width = size;
+        canvas.height = size * (9/16);
+        const ctx = canvas.getContext('2d');
+        
+        if (ctx) {
+          // Create a gradient background
+          const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+          gradient.addColorStop(0, isDark ? '#0f172a' : '#e0f2fe');
+          gradient.addColorStop(1, isDark ? '#1e293b' : '#bfdbfe');
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          // Draw a simple website mockup
+          // Header
+          ctx.fillStyle = isDark ? '#334155' : '#1e40af';
+          ctx.fillRect(0, 0, canvas.width, canvas.height * 0.12);
+          
+          // Sidebar
+          ctx.fillStyle = isDark ? '#1e293b' : '#dbeafe';
+          ctx.fillRect(0, canvas.height * 0.12, canvas.width * 0.2, canvas.height * 0.88);
+          
+          // Content area with cards
+          const cardCount = 6;
+          const cardWidth = (canvas.width * 0.75) / 3;
+          const cardHeight = cardWidth * 0.8;
+          const startX = canvas.width * 0.22;
+          const startY = canvas.height * 0.18;
+          
+          for (let i = 0; i < cardCount; i++) {
+            const row = Math.floor(i / 3);
+            const col = i % 3;
+            const x = startX + col * (cardWidth * 1.05);
+            const y = startY + row * (cardHeight * 1.2);
+            
+            // Card background
+            ctx.fillStyle = isDark ? '#334155' : '#ffffff';
+            ctx.fillRect(x, y, cardWidth, cardHeight);
+            
+            // Card image area
+            ctx.fillStyle = themeColors.primary.toString(16).padStart(6, '0');
+            ctx.fillRect(x, y, cardWidth, cardHeight * 0.6);
+            
+            // Card text lines
+            ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
+            ctx.fillRect(x + 10, y + cardHeight * 0.65, cardWidth - 20, 5);
+            ctx.fillRect(x + 10, y + cardHeight * 0.75, cardWidth - 40, 5);
+            ctx.fillRect(x + 10, y + cardHeight * 0.85, cardWidth * 0.6, 5);
+          }
+          
+          return new THREE.CanvasTexture(canvas);
+        }
+        
+        return null;
+      };
+      
+      const screenContent = createScreenContent();
+      if (screenContent) {
+        monitorScreenMaterial.map = screenContent;
+        monitorScreenMaterial.needsUpdate = true;
+      }
+      
+      // Add a keyboard in front of the monitor
+      const keyboardGeometry = new THREE.BoxGeometry(1.4, 0.05, 0.5);
+      const keyboardMaterial = new THREE.MeshStandardMaterial({
+        color: isDark ? 0x333333 : 0xdddddd,
+        metalness: 0.5,
+        roughness: 0.5
+      });
+      
+      const keyboard = new THREE.Mesh(keyboardGeometry, keyboardMaterial);
+      keyboard.position.set(0.5, deskHeight + 0.025, 0.1);
+      keyboard.castShadow = !isMobile;
+      workspaceGroup.add(keyboard);
+      
+      // Add a coffee mug
+      if (!isMobile) {
+        const mugGroup = new THREE.Group();
+        
+        const cupGeometry = new THREE.CylinderGeometry(0.12, 0.1, 0.22, 16);
+        const cupMaterial = new THREE.MeshStandardMaterial({
+          color: 0xffffff,
+          roughness: 0.3,
+          metalness: 0
+        });
+        
+        const cup = new THREE.Mesh(cupGeometry, cupMaterial);
+        cup.castShadow = true;
+        mugGroup.add(cup);
+        
+        // Coffee inside the cup
+        const coffeeGeometry = new THREE.CylinderGeometry(0.11, 0.09, 0.05, 16);
+        const coffeeMaterial = new THREE.MeshStandardMaterial({
+          color: 0x4b3621,
+          roughness: 0.1,
+          metalness: 0.1
+        });
+        
+        const coffee = new THREE.Mesh(coffeeGeometry, coffeeMaterial);
+        coffee.position.y = 0.09;
+        mugGroup.add(coffee);
+        
+        // Handle
+        const handleGeometry = new THREE.TorusGeometry(0.08, 0.02, 8, 16, Math.PI);
+        const handle = new THREE.Mesh(handleGeometry, cupMaterial);
+        handle.rotation.y = Math.PI / 2;
+        handle.position.set(0.14, 0, 0);
+        handle.castShadow = true;
+        mugGroup.add(handle);
+        
+        mugGroup.position.set(1.5, deskHeight + 0.11, 0.3);
+        workspaceGroup.add(mugGroup);
+      }
+      
+      // Add a plant for decoration
+      const plantGroup = new THREE.Group();
+      
+      const potGeometry = new THREE.CylinderGeometry(0.1, 0.15, 0.2, 16);
+      const potMaterial = new THREE.MeshStandardMaterial({
+        color: 0xFF5733,
+        roughness: 0.8,
+        metalness: 0
+      });
+      
+      const pot = new THREE.Mesh(potGeometry, potMaterial);
+      plantGroup.add(pot);
+      
+      const plantMaterial = new THREE.MeshStandardMaterial({
+        color: 0x228B22,
+        roughness: 1.0,
+        metalness: 0
+      });
+      
+      // Create simple plant leaves
+      for (let i = 0; i < (isMobile ? 3 : 5); i++) {
+        const leafGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+        leafGeometry.scale(1, 1.5, 1);
+        
+        const leaf = new THREE.Mesh(leafGeometry, plantMaterial);
+        const angle = (i / (isMobile ? 3 : 5)) * Math.PI * 2;
+        const radius = 0.05;
+        
+        leaf.position.set(
+          Math.cos(angle) * radius,
+          0.2 + Math.random() * 0.1,
+          Math.sin(angle) * radius
+        );
+        
+        leaf.castShadow = !isMobile;
+        plantGroup.add(leaf);
+      }
+      
+      plantGroup.position.set(1.7, deskHeight + 0.1, -0.5);
+      workspaceGroup.add(plantGroup);
+      
+      // Scale the entire workspace
+      workspaceGroup.scale.set(0.8, 0.8, 0.8);
+      
+      return workspaceGroup;
+    }
+    
+    // Create abstract floating elements for visual appeal
+    function createAbstractModel(): THREE.Group {
+      const abstractGroup = new THREE.Group();
+      
+      // Create floating shapes with minimal complexity on mobile
+      const numShapes = isMobile ? 10 : 20;
+      const shapeFunctions = [
+        // Torus (Donut shape)
+        () => {
+          const geometry = new THREE.TorusGeometry(
+            0.3 + Math.random() * 0.3, // radius
+            0.06 + Math.random() * 0.08, // tube
+            isMobile ? 8 : 16, // radialSegments
+            isMobile ? 12 : 24 // tubularSegments
+          );
+          return geometry;
+        },
+        
+        // Icosahedron (20-faced polyhedron)
+        () => {
+          const geometry = new THREE.IcosahedronGeometry(
+            0.2 + Math.random() * 0.3, // radius
+            isMobile ? 0 : 1 // detail level
+          );
+          return geometry;
+        },
+        
+        // Octahedron (8-faced polyhedron)
+        () => {
+          const geometry = new THREE.OctahedronGeometry(
+            0.2 + Math.random() * 0.4, // radius
+            isMobile ? 0 : 1 // detail level
+          );
+          return geometry;
+        },
+        
+        // Torus Knot (complex twisted shape)
+        () => {
+          const geometry = new THREE.TorusKnotGeometry(
+            0.2 + Math.random() * 0.2, // radius
+            0.05 + Math.random() * 0.05, // tube
+            isMobile ? 24 : 64, // tubularSegments
+            isMobile ? 8 : 12, // radialSegments
+            Math.floor(2 + Math.random() * 3), // p
+            Math.floor(2 + Math.random() * 2) // q
+          );
+          return geometry;
+        }
+      ];
+      
+      // Create themed colors for the shapes
+      const colorPalette = [
+        themeColors.primary,
+        themeColors.secondary,
+        themeColors.accent,
+        0x8B5CF6, // Purple
+        0xFFD700, // Gold
+        0x06B6D4, // Cyan
+      ];
+      
+      // Create floating shapes
+      for (let i = 0; i < numShapes; i++) {
+        // Select random shape and color
+        const shapeFunction = shapeFunctions[Math.floor(Math.random() * shapeFunctions.length)];
+        const geometry = shapeFunction();
+        
+        // Create materials with different rendering properties
+        let material;
+        const materialType = Math.random();
+        
+        if (materialType < 0.3) {
+          // Glossy material with reflections
+          material = new THREE.MeshPhysicalMaterial({
+            color: colorPalette[Math.floor(Math.random() * colorPalette.length)],
+            metalness: 0.9,
+            roughness: 0.1,
+            clearcoat: 0.5,
+            clearcoatRoughness: 0.2,
+            reflectivity: 1.0
+          });
+        } else if (materialType < 0.6) {
+          // Matte material with soft appearance
+          material = new THREE.MeshStandardMaterial({
+            color: colorPalette[Math.floor(Math.random() * colorPalette.length)],
+            metalness: 0.1,
+            roughness: 0.8,
+            emissive: colorPalette[Math.floor(Math.random() * colorPalette.length)],
+            emissiveIntensity: 0.2
+          });
+        } else {
+          // Glowing material with emission
+          material = new THREE.MeshStandardMaterial({
+            color: colorPalette[Math.floor(Math.random() * colorPalette.length)],
+            emissive: colorPalette[Math.floor(Math.random() * colorPalette.length)],
+            emissiveIntensity: 0.8,
+            metalness: 0.3,
+            roughness: 0.7
+          });
+        }
+        
+        // Create the mesh and position it randomly
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        // Position shapes in a spherical arrangement
+        const radius = 3 + Math.random() * 2;
+        const theta = Math.random() * Math.PI * 2; // Random angle around y-axis
+        const phi = Math.random() * Math.PI; // Random angle from y-axis
+        
+        mesh.position.set(
+          radius * Math.sin(phi) * Math.cos(theta),
+          radius * Math.cos(phi),
+          radius * Math.sin(phi) * Math.sin(theta)
+        );
+        
+        // Set random rotation
+        mesh.rotation.set(
+          Math.random() * Math.PI * 2,
+          Math.random() * Math.PI * 2,
+          Math.random() * Math.PI * 2
+        );
+        
+        // Add animation data as custom properties
+        mesh.userData = {
+          rotationSpeed: {
+            x: (Math.random() - 0.5) * 0.002,
+            y: (Math.random() - 0.5) * 0.002,
+            z: (Math.random() - 0.5) * 0.002
+          },
+          floatSpeed: 0.001 + Math.random() * 0.003,
+          floatDistance: 0.1 + Math.random() * 0.5,
+          initialY: mesh.position.y,
+          phase: Math.random() * Math.PI * 2 // For varied floating animation
+        };
+        
+        // Enable shadows for desktop
+        if (!isMobile) {
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+        }
+        
+        abstractGroup.add(mesh);
+        
+        // Create an animation loop that updates the shapes
+        const animateShapes = (time: number) => {
+          abstractGroup.children.forEach((child) => {
+            const mesh = child as THREE.Mesh;
+            const data = mesh.userData;
+            
+            // Rotate each shape independently
+            mesh.rotation.x += data.rotationSpeed.x;
+            mesh.rotation.y += data.rotationSpeed.y;
+            mesh.rotation.z += data.rotationSpeed.z;
+            
+            // Make shapes float up and down with different phases
+            mesh.position.y = data.initialY + 
+              Math.sin(time * 0.001 * data.floatSpeed + data.phase) * data.floatDistance;
+          });
+          
+          frameRef.current = requestAnimationFrame(animateShapes);
+        };
+        
+        animateShapes(0);
+      }
+      
+      return abstractGroup;
+    }
+    
+    // Add a particle system for background effect
+    function addParticleSystem() {
+      if (isMobile && particlesRef.current) return; // Skip on mobile if already exists
+      
+      // Create a particle system with optimized count for mobile
+      const particleCount = isMobile ? 500 : 2000;
+      const particles = new Float32Array(particleCount * 3);
+      const particleSizes = new Float32Array(particleCount);
+      
+      const radius = 15;
+      
+      for (let i = 0; i < particleCount; i++) {
+        const i3 = i * 3;
+        
+        // Create particles in a spherical cloud
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.random() * Math.PI;
+        const r = radius * Math.cbrt(Math.random()); // Cube root for more even distribution
+        
+        particles[i3] = r * Math.sin(phi) * Math.cos(theta);
+        particles[i3 + 1] = r * Math.cos(phi);
+        particles[i3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+        
+        // Random sizes for visual interest
+        particleSizes[i] = 0.05 + Math.random() * 0.15;
+      }
+      
+      const particleGeometry = new THREE.BufferGeometry();
+      particleGeometry.setAttribute('position', new THREE.BufferAttribute(particles, 3));
+      particleGeometry.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
+      
+      // Create a custom shader material for better looking particles
+      const particleMaterial = new THREE.PointsMaterial({
+        color: isDark ? 0xffffff : 0x000000,
+        size: 0.1,
+        transparent: true,
+        opacity: 0.5,
+        blending: THREE.AdditiveBlending, // Makes particles glow when they overlap
+        sizeAttenuation: true // Particles change size with distance
+      });
+      
+      const particleSystem = new THREE.Points(particleGeometry, particleMaterial);
+      scene.add(particleSystem);
+      particlesRef.current = particleSystem;
+    }
 
     return () => {
       // Clean up resources
@@ -452,15 +1335,26 @@ const ThreeDModel = ({ scrollTrigger = false }: ThreeDModelProps) => {
       if (scrollTrigger) {
         window.removeEventListener('scroll', handleScroll);
       }
+      
+      // Remove custom cursor text
+      containerRef.current?.removeAttribute('data-cursor-text');
     };
-  }, [theme, scrollTrigger, isMobile, isHovered, isDragging, interactionStartPos, modelRotation]);
+  }, [theme, isDark, themeColors, scrollTrigger, isMobile, isHovered, isDragging, interactionStartPos, modelRotation, mousePosition, modelType, isInView]);
 
   return (
     <div 
       ref={containerRef} 
-      className="w-full h-full cursor-grab active:cursor-grabbing"
+      className="w-full h-full cursor-grab active:cursor-grabbing relative"
       style={{ touchAction: 'none' }} // Prevent default touch actions on mobile
-    />
+      data-cursor-text={isHovered && !isDragging ? "Drag to Rotate" : undefined}
+    >
+      {/* Optional loading indicator for slow devices */}
+      {!isInView && scrollTrigger && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm z-10">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
+    </div>
   );
 };
 
