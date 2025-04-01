@@ -2,33 +2,61 @@ import { motion } from 'framer-motion';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTheme } from '@/hooks/useTheme';
+import { 
+  SiJavascript, SiReact, SiTypescript, SiHtml5, SiCss3, SiTailwindcss, 
+  SiNodedotjs, SiExpress, SiMongodb, SiNextdotjs, SiGraphql, SiRedux, 
+  SiJest, SiReactquery, SiGit, SiGithub, SiFramer, SiGreensock, SiThreedotjs,
+  SiMui, SiFirebase, SiAmazon, SiDocker, SiGithubactions, SiFigma, SiVercel
+} from 'react-icons/si';
 
 interface Skill {
   name: string;
   percentage: number;
+  icon: React.ReactNode;
+  color: string;
 }
 
 const leftSkills: Skill[] = [
-  { name: 'JavaScript', percentage: 95 },
-  { name: 'React.js', percentage: 90 },
-  { name: 'TypeScript', percentage: 85 },
-  { name: 'HTML/CSS', percentage: 90 },
-  { name: 'Tailwind CSS', percentage: 85 },
+  { name: 'JavaScript', percentage: 95, icon: <SiJavascript size={22} />, color: 'text-yellow-500' },
+  { name: 'React.js', percentage: 90, icon: <SiReact size={22} />, color: 'text-sky-500' },
+  { name: 'TypeScript', percentage: 85, icon: <SiTypescript size={22} />, color: 'text-blue-500' },
+  { name: 'HTML/CSS', percentage: 90, icon: <div className="flex gap-1"><SiHtml5 size={22} className="text-orange-500" /><SiCss3 size={22} className="text-blue-400" /></div>, color: '' },
+  { name: 'Tailwind CSS', percentage: 85, icon: <SiTailwindcss size={22} />, color: 'text-cyan-500' },
 ];
 
 const rightSkills: Skill[] = [
-  { name: 'Node.js', percentage: 85 },
-  { name: 'Express.js', percentage: 80 },
-  { name: 'MongoDB', percentage: 80 },
-  { name: 'Next.js', percentage: 75 },
-  { name: 'GraphQL', percentage: 70 },
+  { name: 'Node.js', percentage: 85, icon: <SiNodedotjs size={22} />, color: 'text-green-500' },
+  { name: 'Express.js', percentage: 80, icon: <SiExpress size={22} />, color: 'text-neutral-600 dark:text-neutral-400' },
+  { name: 'MongoDB', percentage: 80, icon: <SiMongodb size={22} />, color: 'text-green-600' },
+  { name: 'Next.js', percentage: 75, icon: <SiNextdotjs size={22} />, color: 'text-black dark:text-white' },
+  { name: 'GraphQL', percentage: 70, icon: <SiGraphql size={22} />, color: 'text-pink-600' },
 ];
 
-const technologies = [
-  'Redux', 'Jest', 'React Query', 'Git', 'GitHub', 'REST API', 
-  'Framer Motion', 'GSAP', 'Three.js', 'Material UI', 'Firebase',
-  'AWS', 'Docker', 'CI/CD', 'Figma', 'Responsive Design'
+interface TechItem {
+  name: string;
+  icon: React.ReactNode;
+  color: string;
+}
+
+const technologies: TechItem[] = [
+  { name: 'Redux', icon: <SiRedux size={20} />, color: 'text-purple-600' },
+  { name: 'Jest', icon: <SiJest size={20} />, color: 'text-red-600' },
+  { name: 'React Query', icon: <SiReactquery size={20} />, color: 'text-red-500' },
+  { name: 'Git', icon: <SiGit size={20} />, color: 'text-orange-600' },
+  { name: 'GitHub', icon: <SiGithub size={20} />, color: 'text-neutral-800 dark:text-neutral-200' },
+  { name: 'REST API', icon: <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" className="text-blue-500"><path d="M9.5 4.5v3h-3v-3h3M11 3H5v6h6V3zm-1.5 7.5v3h-3v-3h3M11 9H5v6h6V9zm5.5-5.5v3h-3v-3h3M21 3h-6v6h6V3zm-6 13.5h1.5v-3H15v3zm1.5 1.5H21v-6h-6v6zM9.5 16.5v3h-3v-3h3M11 15H5v6h6v-6z"/></svg>, color: '' },
+  { name: 'Framer Motion', icon: <SiFramer size={20} />, color: 'text-neutral-800 dark:text-neutral-200' },
+  { name: 'GSAP', icon: <SiGreensock size={20} />, color: 'text-green-500' },
+  { name: 'Three.js', icon: <SiThreedotjs size={20} />, color: 'text-neutral-800 dark:text-neutral-200' },
+  { name: 'Material UI', icon: <SiMui size={20} />, color: 'text-blue-600' },
+  { name: 'Firebase', icon: <SiFirebase size={20} />, color: 'text-amber-500' },
+  { name: 'AWS', icon: <SiAmazon size={20} />, color: 'text-amber-600' },
+  { name: 'Docker', icon: <SiDocker size={20} />, color: 'text-blue-500' },
+  { name: 'CI/CD', icon: <SiGithubactions size={20} />, color: 'text-neutral-800 dark:text-neutral-200' },
+  { name: 'Figma', icon: <SiFigma size={20} />, color: 'text-purple-500' },
+  { name: 'Vercel', icon: <SiVercel size={20} />, color: 'text-neutral-800 dark:text-neutral-200' },
 ];
 
 const SkillBar = ({ skill }: { skill: Skill }) => {
@@ -37,8 +65,11 @@ const SkillBar = ({ skill }: { skill: Skill }) => {
   
   return (
     <div ref={animation.ref} className="mb-6">
-      <div className="flex justify-between mb-1">
-        <span className="font-medium">{skill.name}</span>
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center gap-2">
+          <span className={`${skill.color}`}>{skill.icon}</span>
+          <span className="font-medium">{skill.name}</span>
+        </div>
         <span className="text-muted-foreground">{skill.percentage}%</span>
       </div>
       <Progress 
@@ -110,7 +141,7 @@ const Skills = () => {
         >
           <h3 className="text-xl font-bold mb-6 text-center">Other Technologies</h3>
           
-          <div className="flex flex-wrap justify-center gap-2">
+          <div className="flex flex-wrap justify-center gap-3">
             {technologies.map((tech, index) => (
               <motion.div
                 key={index}
@@ -118,9 +149,22 @@ const Skills = () => {
                 animate={techAnimation.isVisible ? { opacity: 1, scale: 1 } : {}}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
               >
-                <Badge variant="outline" className="px-4 py-2 text-sm">
-                  {tech}
-                </Badge>
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge 
+                        variant="outline" 
+                        className="px-4 py-2 text-sm flex items-center gap-2 hover:bg-accent/30 cursor-pointer transition-colors"
+                      >
+                        <span className={tech.color}>{tech.icon}</span>
+                        <span>{tech.name}</span>
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>{tech.name}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </motion.div>
             ))}
           </div>

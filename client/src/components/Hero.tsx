@@ -114,9 +114,20 @@ const Hero = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-                <span>Hello, I'm </span>
-                <span className="gradient-text">John Doe</span>
+              <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-4">
+                <span className="block">Hello, I'm</span>
+                <motion.span 
+                  className="gradient-text block text-5xl md:text-6xl lg:text-8xl mt-2"
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: 1 }}
+                  transition={{ 
+                    type: "spring", 
+                    stiffness: 100, 
+                    delay: 0.3 
+                  }}
+                >
+                  YOUR NAME
+                </motion.span>
               </h1>
             </motion.div>
             
