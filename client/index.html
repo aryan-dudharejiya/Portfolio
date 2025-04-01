@@ -2,21 +2,111 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>Alex Morgan | MERN Stack Developer</title>
-    <meta name="description" content="Hire Alex Morgan - MERN Stack Developer specializing in creating stunning web applications, business websites, and custom solutions.">
-    <meta property="og:title" content="Alex Morgan | MERN Stack Developer">
-    <meta property="og:description" content="Looking for a professional MERN Stack Developer? I create high-performance web applications with beautiful UI/UX.">
-    <meta property="og:type" content="website">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5" />
+    
+    <!-- Base Meta Tags (will be overridden by helmet) -->
+    <title>John Doe | MERN Stack Developer</title>
+    <meta name="description" content="Professional MERN Stack Developer specializing in creating stunning web applications with React, Node.js, Express, and MongoDB." />
+    <meta name="author" content="John Doe" />
+    <meta name="keywords" content="MERN Stack, React Developer, Node.js, JavaScript, Web Development, Portfolio" />
+
+    <!-- Favicon and App Icons -->
+    <link rel="icon" type="image/svg+xml" href="/icons/logo.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.svg" />
+    
+    <!-- Manifest for PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#6d28d9" />
+
+    <!-- Performance Optimizations -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" as="style" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" />
+    
+    <!-- Critical CSS for faster rendering -->
+    <style>
+      :root {
+        --font-sans: 'Inter', 'Poppins', sans-serif;
+        --font-heading: 'Space Grotesk', sans-serif;
+      }
+      
+      html, body {
+        margin: 0;
+        padding: 0;
+        scroll-behavior: smooth;
+      }
+      
+      #root {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      
+      /* Loading indicator styles */
+      .loading-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #fafafa;
+        z-index: 9999;
+      }
+      
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(109, 40, 217, 0.2);
+        border-radius: 50%;
+        border-top-color: #6d28d9;
+        animation: spin 1s ease-in-out infinite;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      @media (prefers-color-scheme: dark) {
+        .loading-container {
+          background-color: #1a1a1a;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Initial loading state -->
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+      </div>
+    </div>
+    
+    <!-- App Script -->
     <script type="module" src="/src/main.tsx"></script>
-    <!-- This script injects a replit badge into the page, please feel free to remove this line -->
-    <script type="text/javascript" src="https://replit.com/public/js/replit-badge-v3.js"></script>
+    
+    <!-- Replit Badge -->
+    <script defer type="text/javascript" src="https://replit.com/public/js/replit-badge-v3.js"></script>
+    
+    <!-- Inline script for performance metrics -->
+    <script>
+      // Performance monitoring
+      if ('performance' in window && 'PerformanceObserver' in window) {
+        // Create observer for Core Web Vitals
+        const observer = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            console.log(`[Performance] ${entry.name}: ${entry.startTime.toFixed(2)}ms`);
+          }
+        });
+        
+        // Observe paint timing events (FP, FCP)
+        observer.observe({ entryTypes: ['paint', 'largest-contentful-paint'] });
+      }
+      
+      // Service worker is registered in main.tsx
+    </script>
   </body>
 </html>

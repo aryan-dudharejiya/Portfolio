@@ -210,73 +210,144 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }: ProjectCar
         stiffness: 100,
         damping: 20
       }}
-      className="group relative h-[350px] rounded-lg overflow-hidden border bg-card"
+      className="group relative h-[350px] rounded-lg overflow-hidden border bg-card shadow-sm hover:shadow-xl transition-all duration-500"
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
+      whileHover={{ y: -8 }}
     >
       {/* Project image */}
-      <div className="absolute inset-0 bg-black/50 z-10"></div>
       <img 
         src={project.imageUrl} 
         alt={project.title}
-        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
       />
       
-      {/* Project info overlay */}
-      <div className="absolute inset-0 z-20 p-6 flex flex-col justify-end">
-        <div className="space-y-2">
-          <div className="flex gap-2 mb-2">
-            <Badge variant="secondary" className="capitalize">
+      {/* Project info overlay - animated on hover */}
+      <motion.div 
+        className="absolute inset-0 z-20 p-6 flex flex-col justify-end"
+        initial={{ opacity: 1 }}
+        whileHover={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <motion.div 
+          className="space-y-2"
+          initial={{ y: 0 }}
+          whileHover={{ y: -5 }}
+          transition={{ 
+            duration: 0.3,
+            type: "spring", 
+            stiffness: 200 
+          }}
+        >
+          {/* Project category */}
+          <motion.div 
+            className="flex gap-2 mb-2"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Badge 
+              variant="secondary" 
+              className="capitalize bg-primary/80 hover:bg-primary text-white transition-colors"
+            >
               {project.category}
             </Badge>
+          </motion.div>
+          
+          {/* Project title with animated underline on hover */}
+          <div className="relative">
+            <h3 className="text-xl font-bold text-white">{project.title}</h3>
+            <motion.div 
+              className="absolute -bottom-1 left-0 h-[2px] bg-primary/80"
+              initial={{ width: "0%" }}
+              whileHover={{ width: "100%" }}
+              transition={{ duration: 0.3 }}
+            />
           </div>
           
-          <h3 className="text-xl font-bold text-white">{project.title}</h3>
-          
-          <p className="text-white/80 text-sm line-clamp-2 mb-4">
+          {/* Description - fades in on hover */}
+          <motion.p 
+            className="text-white/90 text-sm line-clamp-2 mb-4"
+            initial={{ opacity: 0.7 }}
+            whileHover={{ opacity: 1 }}
+          >
             {project.description}
-          </p>
+          </motion.p>
           
-          {/* Technology tags */}
+          {/* Technology tags with staggered animation */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {project.technologies.slice(0, 3).map((tech, i) => (
-              <span 
+            {project.technologies.map((tech, i) => (
+              <motion.span 
                 key={i}
-                className="text-xs px-2 py-1 bg-white/10 text-white/90 rounded"
+                className="text-xs px-2 py-1 bg-white/10 text-white/90 rounded hover:bg-white/20 transition-colors"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ 
+                  delay: 0.1 + (i * 0.05),
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20 
+                }}
+                whileHover={{ y: -2, scale: 1.05 }}
               >
                 {tech}
-              </span>
+              </motion.span>
             ))}
-            {project.technologies.length > 3 && (
-              <span className="text-xs px-2 py-1 bg-white/10 text-white/90 rounded">
-                +{project.technologies.length - 3}
-              </span>
-            )}
           </div>
           
-          {/* Action buttons */}
-          <div className="flex gap-3">
+          {/* Action buttons with hover effects */}
+          <motion.div 
+            className="flex gap-3"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
             {project.githubUrl && (
-              <Button size="sm" variant="outline" className="bg-black/30 text-white border-white/20 hover:bg-black/50 hover:text-white">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="bg-black/30 text-white border-white/20 hover:bg-primary/80 hover:border-transparent hover:text-white hover:scale-105 transition-all"
+              >
                 <Github size={16} className="mr-1" /> Code
               </Button>
             )}
             {project.liveUrl && (
-              <Button size="sm" className="gap-1">
+              <Button 
+                size="sm" 
+                className="bg-primary hover:bg-primary/90 hover:scale-105 transition-all gap-1"
+              >
                 <ExternalLink size={16} /> Demo
               </Button>
             )}
-          </div>
-        </div>
-      </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
       
-      {/* Hover effect */}
+      {/* Animated gradient overlay */}
       <motion.div 
-        className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent z-10"
+        className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-10"
         initial={{ opacity: 0.7 }}
-        animate={{ opacity: isHovered ? 0.9 : 0.7 }}
+        animate={{ opacity: isHovered ? 0.95 : 0.7 }}
         transition={{ duration: 0.3 }}
       />
+      
+      {/* Interactive corner badge - appears on hover */}
+      {isHovered && (
+        <motion.div
+          className="absolute top-4 right-4 z-30"
+          initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          transition={{ 
+            duration: 0.3,
+            type: "spring",
+            stiffness: 300
+          }}
+        >
+          <Badge className="bg-primary/90 hover:bg-primary text-white px-3 py-1.5 text-xs">
+            View Details
+          </Badge>
+        </motion.div>
+      )}
     </motion.div>
   );
 };

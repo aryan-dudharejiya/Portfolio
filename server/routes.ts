@@ -9,6 +9,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(200).json({ status: 'ok' });
   });
 
+  // Serve the service worker with correct MIME type
+  app.get('/service-worker.js', (req, res) => {
+    res.set('Content-Type', 'application/javascript');
+    res.sendFile('service-worker.js', { root: './public' });
+  });
+
+  // Serve the manifest with correct MIME type
+  app.get('/manifest.json', (req, res) => {
+    res.set('Content-Type', 'application/json');
+    res.sendFile('manifest.json', { root: './public' });
+  });
+  
+  // Serve SVG icons with correct MIME type
+  app.get('/icons/:filename', (req, res) => {
+    if (req.params.filename.endsWith('.svg')) {
+      res.set('Content-Type', 'image/svg+xml');
+      res.sendFile(req.params.filename, { root: './public/icons' });
+    } else {
+      res.status(404).send('Not found');
+    }
+  });
+
   // Contact form route
   app.post('/api/contact', async (req, res) => {
     try {
