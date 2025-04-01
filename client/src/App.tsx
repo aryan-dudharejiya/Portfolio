@@ -10,6 +10,9 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 
+// Lazy load the project details page for better performance
+const ProjectDetails = lazy(() => import("./pages/project-details"));
+
 // Lazy loading for better performance
 const LoadingFallback = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-background z-50">
@@ -22,6 +25,8 @@ function Router() {
     <Suspense fallback={<LoadingFallback />}>
       <Switch>
         <Route path="/" component={Home} />
+        {/* Project details route */}
+        <Route path="/projects/:id" component={ProjectDetails} />
         {/* Fallback to 404 */}
         <Route component={NotFound} />
       </Switch>

@@ -68,21 +68,54 @@ const Contact = () => {
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     
-    // Simulate API call
     try {
-      // In a real app, this would be an API call to send the message
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Send data to the API endpoint
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to send message');
+      }
       
       toast({
-        title: "Message sent!",
+        title: "Message sent successfully!",
         description: "Thank you for your message. I'll get back to you soon.",
       });
       
+      // If we're in development and have a preview URL, show a link
+      if (result.previewUrl) {
+        toast({
+          title: "Email Preview Available",
+          description: (
+            <div>
+              <p>This is a development preview:</p>
+              <a 
+                href={result.previewUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                View the sent email
+              </a>
+            </div>
+          ),
+          duration: 10000,
+        });
+      }
+      
       form.reset();
     } catch (error) {
+      console.error('Error submitting form:', error);
       toast({
         title: "Error sending message",
-        description: "Please try again later or contact me directly via email.",
+        description: error instanceof Error ? error.message : "Please try again later or contact me directly via email.",
         variant: "destructive",
       });
     } finally {

@@ -40,10 +40,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Please provide name, email and message' });
       }
       
-      // For production, you would set up a real email service
-      // Here we just simulate a successful response
+      // Import the email service functions
+      const { formatContactEmail, sendEmail } = await import('./emailService');
+
+      // The recipient would typically be your email address
+      const recipient = process.env.EMAIL_RECIPIENT || 'portfolio.owner@example.com';
       
-      res.status(200).json({ message: 'Message sent successfully' });
+      // Format and send the email
+      const emailMessage = formatContactEmail({ name, email, subject, message }, recipient);
+      const result = await sendEmail(emailMessage);
+      
+      res.status(200).json({ 
+        message: 'Message sent successfully',
+        // Include the preview URL in development mode for testing
+        previewUrl: process.env.NODE_ENV !== 'production' ? result.previewUrl : undefined 
+      });
     } catch (error) {
       console.error('Error sending message:', error);
       res.status(500).json({ message: 'Failed to send message' });

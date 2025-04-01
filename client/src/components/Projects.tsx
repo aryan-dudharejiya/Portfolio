@@ -4,7 +4,8 @@ import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Github, ExternalLink } from 'lucide-react';
+import { ChevronRight, Github, ExternalLink, ArrowRight } from 'lucide-react';
+import { Link } from 'wouter';
 
 type ProjectCategory = 'all' | 'website' | 'webapp' | 'ecommerce';
 
@@ -176,8 +177,14 @@ const Projects = () => {
         
         {/* More projects button */}
         <div className="mt-12 text-center">
-          <Button size="lg" variant="outline" className="gap-2">
-            View All Projects <ChevronRight size={16} />
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="gap-2 group hover:border-primary hover:bg-primary/5 transition-all"
+            onClick={() => setActiveCategory('all')}
+          >
+            View All Projects 
+            <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>
       </div>
@@ -210,10 +217,11 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }: ProjectCar
         stiffness: 100,
         damping: 20
       }}
-      className="group relative h-[350px] rounded-lg overflow-hidden border bg-card shadow-sm hover:shadow-xl transition-all duration-500"
+      className="group relative h-[350px] rounded-lg overflow-hidden border bg-card shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer"
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
       whileHover={{ y: -8 }}
+      onClick={() => window.location.href = `/projects/${project.id}`}
     >
       {/* Project image */}
       <img 
@@ -342,9 +350,13 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }: ProjectCar
             type: "spring",
             stiffness: 300
           }}
+          onClick={(e) => {
+            e.stopPropagation();
+            window.location.href = `/projects/${project.id}`;
+          }}
         >
-          <Badge className="bg-primary/90 hover:bg-primary text-white px-3 py-1.5 text-xs">
-            View Details
+          <Badge className="bg-primary/90 hover:bg-primary text-white px-3 py-1.5 text-xs cursor-pointer flex items-center gap-1">
+            View Case Study <ArrowRight size={12} />
           </Badge>
         </motion.div>
       )}
