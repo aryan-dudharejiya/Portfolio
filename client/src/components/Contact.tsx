@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Phone, MapPin, Send, Loader2, Github, Linkedin, Instagram } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Loader2, Github, Linkedin, Instagram, Mail as Email } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
