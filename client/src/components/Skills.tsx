@@ -52,7 +52,7 @@ const technologies: TechItem[] = [
   { name: 'Three.js', icon: <SiThreedotjs size={20} />, color: 'text-neutral-800 dark:text-neutral-200' },
   { name: 'Material UI', icon: <SiMui size={20} />, color: 'text-blue-600' },
   { name: 'Firebase', icon: <SiFirebase size={20} />, color: 'text-amber-500' },
-  { name: 'AWS', icon: <SiAmazon size={20} />, color: 'text-amber-600' },
+  { name: 'AWS', icon: <SiAmazon size={20} />, color: 'text-amber-600' }, // Using SiAmazon for AWS
   { name: 'Docker', icon: <SiDocker size={20} />, color: 'text-blue-500' },
   { name: 'CI/CD', icon: <SiGithubactions size={20} />, color: 'text-neutral-800 dark:text-neutral-200' },
   { name: 'Figma', icon: <SiFigma size={20} />, color: 'text-purple-500' },
@@ -142,14 +142,14 @@ const Skills = () => {
           <h3 className="text-xl font-bold mb-6 text-center">Other Technologies</h3>
           
           <div className="flex flex-wrap justify-center gap-3">
-            {technologies.map((tech, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={techAnimation.isVisible ? { opacity: 1, scale: 1 } : {}}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-              >
-                <TooltipProvider delayDuration={300}>
+            <TooltipProvider delayDuration={300}>
+              {technologies.map((tech, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={techAnimation.isVisible ? { opacity: 1, scale: 1 } : {}}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Badge 
@@ -164,9 +164,9 @@ const Skills = () => {
                       <p>{tech.name}</p>
                     </TooltipContent>
                   </Tooltip>
-                </TooltipProvider>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
+            </TooltipProvider>
           </div>
         </motion.div>
       </div>
