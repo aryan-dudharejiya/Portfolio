@@ -2,7 +2,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Code, Layout, Database, Smartphone, Server, Paintbrush, ArrowRight } from 'lucide-react';
+import { 
+  Code, ArrowRight, Building2, Store, 
+  Calendar, MessageCircle, BookTemplate 
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface Service {
@@ -15,81 +18,81 @@ interface Service {
 
 const services: Service[] = [
   {
-    icon: <Layout size={28} />,
-    title: "UI/UX Design",
-    description: "Creating intuitive, user-centered interfaces with a focus on accessibility and engaging user experiences.",
+    icon: <Building2 size={28} />,
+    title: "Business Websites",
+    description: "High-converting websites for startups, business owners, coaches, restaurants, gyms, and more.",
     color: "from-blue-500 to-violet-500",
     features: [
-      "Wireframing & prototyping",
-      "User journey mapping",
-      "Interactive designs",
-      "Accessibility compliance",
-      "Usability testing"
+      "Mobile responsive design",
+      "SEO optimization",
+      "Fast loading speed",
+      "Brand-aligned aesthetics",
+      "Contact forms & CTA"
+    ]
+  },
+  {
+    icon: <Store size={28} />,
+    title: "Landing Pages",
+    description: "Conversion-focused landing pages designed for marketing campaigns, lead generation, and sales.",
+    color: "from-indigo-500 to-purple-500",
+    features: [
+      "High-converting layouts",
+      "A/B testing ready",
+      "Call-to-action optimization",
+      "Lead capture forms",
+      "Analytics integration"
     ]
   },
   {
     icon: <Code size={28} />,
-    title: "Frontend Development",
-    description: "Building responsive, dynamic interfaces with React.js, optimized for performance and modern browsers.",
-    color: "from-indigo-500 to-purple-500",
-    features: [
-      "React.js applications",
-      "Next.js websites",
-      "Performance optimization",
-      "State management",
-      "Modern animations"
-    ]
-  },
-  {
-    icon: <Server size={28} />,
-    title: "Backend Development",
-    description: "Developing robust server-side applications with Node.js, Express, and secure RESTful APIs.",
+    title: "Web Applications",
+    description: "Custom web applications and software solutions tailored to your specific business needs.",
     color: "from-green-500 to-emerald-500",
     features: [
-      "Node.js & Express",
+      "Custom functionality",
+      "User authentication",
+      "Database integration",
       "API development",
-      "Authentication systems",
-      "Cloud deployments",
-      "Performance scaling"
+      "Scalable architecture"
     ]
   },
   {
-    icon: <Database size={28} />,
-    title: "Database Design",
-    description: "Architecting efficient MongoDB schemas and optimizing queries for scalable data management.",
+    icon: <BookTemplate size={28} />,
+    title: "Website Templates",
+    description: "Ready-to-use multipurpose business website templates that can be quickly customized for your brand.",
     color: "from-cyan-500 to-blue-500",
     features: [
-      "MongoDB schema design",
-      "SQL & NoSQL solutions",
-      "Data modeling",
-      "Query optimization",
-      "Database migrations"
+      "Pre-designed sections",
+      "Easy customization",
+      "Modern aesthetics",
+      "Responsive layouts",
+      "Quick deployment"
     ]
   },
   {
-    icon: <Smartphone size={28} />,
-    title: "Mobile-First Development",
-    description: "Creating seamless experiences across all devices with responsive design and progressive enhancement.",
+    icon: <Calendar size={28} />,
+    title: "Membership & Booking",
+    description: "Complete systems for membership management and class/appointment booking for service businesses.",
     color: "from-purple-500 to-pink-500",
     features: [
-      "Responsive web apps",
-      "Progressive web apps",
-      "Touch-friendly interfaces",
-      "Cross-device testing",
-      "Mobile optimization"
+      "User accounts",
+      "Payment processing",
+      "Calendar integration",
+      "Automated reminders",
+      "Admin dashboard"
     ]
   },
   {
-    icon: <Paintbrush size={28} />,
-    title: "Creative Solutions",
-    description: "Delivering innovative, custom solutions tailored to unique business requirements and challenges.",
+    icon: <MessageCircle size={28} />,
+    title: "Chatbot Development",
+    description: "Smart business assistant bots for websites, WhatsApp, Instagram, and Facebook Messenger.",
     color: "from-amber-500 to-red-500",
     features: [
-      "Custom web applications",
-      "E-commerce solutions",
-      "Interactive experiences",
-      "Process automation",
-      "System integration"
+      "24/7 customer support",
+      "Lead qualification",
+      "FAQ automation",
+      "Appointment scheduling",
+      "CRM integration"
     ]
   }
 ];

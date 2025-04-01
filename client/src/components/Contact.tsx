@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Phone, MapPin, Send, Loader2, Github, Twitter, Linkedin, Instagram } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Loader2, Github, Linkedin, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -404,10 +404,10 @@ const Contact = () => {
                   <div>
                     <h4 className="font-medium">Email</h4>
                     <a 
-                      href="mailto:contact@johndoe.com" 
+                      href="mailto:work.aryandudharejiya@gmail.com" 
                       className="text-muted-foreground hover:text-primary transition-all duration-300 hover:font-medium relative inline-block"
                     >
-                      contact@johndoe.com
+                      work.aryandudharejiya@gmail.com
                       <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-primary group-hover:w-full transition-all duration-300"></span>
                     </a>
                   </div>
@@ -426,10 +426,10 @@ const Contact = () => {
                   <div>
                     <h4 className="font-medium">Phone</h4>
                     <a 
-                      href="tel:+1234567890" 
+                      href="tel:+919773254534" 
                       className="text-muted-foreground hover:text-primary transition-all duration-300 hover:font-medium relative inline-block"
                     >
-                      +1 (234) 567-890
+                      +91 9773 254 534
                       <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-primary group-hover:w-full transition-all duration-300"></span>
                     </a>
                   </div>
@@ -448,7 +448,7 @@ const Contact = () => {
                   <div>
                     <h4 className="font-medium">Location</h4>
                     <p className="text-muted-foreground group-hover:text-foreground transition-colors duration-300">
-                      San Francisco, CA, USA
+                      Ahmedabad, Gujarat, India
                     </p>
                   </div>
                 </motion.div>
@@ -530,7 +530,9 @@ const Contact = () => {
                 aria-label="Social media links"
               >
                 <a 
-                  href="#" 
+                  href="https://github.com/aryan-dudharejiya" 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="p-2 rounded-full bg-card hover:bg-primary/10 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                   aria-label="GitHub Profile"
                   tabIndex={0}
@@ -544,8 +546,10 @@ const Contact = () => {
                   <Github className="h-5 w-5 text-foreground hover:text-primary transition-colors" />
                 </a>
                 <a 
-                  href="#" 
-                  className="p-2 rounded-full bg-card hover:bg-primary/10 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  href="https://www.linkedin.com/in/aryan-dudharejiya" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-full bg-card hover:bg-[#0A66C2]/10 transition-colors focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:ring-offset-2"
                   aria-label="LinkedIn Profile"
                   tabIndex={0}
                   onKeyDown={(e) => {
@@ -555,25 +559,13 @@ const Contact = () => {
                     }
                   }}
                 >
-                  <Linkedin className="h-5 w-5 text-foreground hover:text-primary transition-colors" />
+                  <Linkedin className="h-5 w-5 text-foreground hover:text-[#0A66C2] transition-colors" />
                 </a>
                 <a 
-                  href="#" 
-                  className="p-2 rounded-full bg-card hover:bg-primary/10 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                  aria-label="Twitter Profile"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      e.currentTarget.click();
-                    }
-                  }}
-                >
-                  <Twitter className="h-5 w-5 text-foreground hover:text-primary transition-colors" />
-                </a>
-                <a 
-                  href="#" 
-                  className="p-2 rounded-full bg-card hover:bg-primary/10 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  href="https://instagram.com/aryan_dudharejiya" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-full bg-card hover:bg-[#E4405F]/10 transition-colors focus:outline-none focus:ring-2 focus:ring-[#E4405F] focus:ring-offset-2"
                   aria-label="Instagram Profile"
                   tabIndex={0}
                   onKeyDown={(e) => {
@@ -583,7 +575,7 @@ const Contact = () => {
                     }
                   }}
                 >
-                  <Instagram className="h-5 w-5 text-foreground hover:text-primary transition-colors" />
+                  <Instagram className="h-5 w-5 text-foreground hover:text-[#E4405F] transition-colors" />
                 </a>
               </motion.div>
             </motion.div>

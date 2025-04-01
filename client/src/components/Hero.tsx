@@ -5,7 +5,7 @@ import { useTheme } from '@/hooks/useTheme';
 import TypeWriter from '@/components/TypeWriter';
 import ThreeDModel from '@/components/three/ThreeDModel';
 import { Button } from '@/components/ui/button';
-import { ArrowDownCircle, Github, Linkedin, Twitter } from 'lucide-react';
+import { ArrowDownCircle, Github, Linkedin, Instagram, Mail, Phone } from 'lucide-react';
 
 const Hero = () => {
   const isMobile = useIsMobile();
@@ -126,7 +126,7 @@ const Hero = () => {
                     delay: 0.3 
                   }}
                 >
-                  YOUR NAME
+                  Aryan Dudharejiya
                 </motion.span>
               </h1>
             </motion.div>
@@ -139,11 +139,11 @@ const Hero = () => {
             >
               <TypeWriter 
                 texts={[
-                  "MERN Stack Developer",
-                  "Frontend Specialist",
-                  "React.js Expert",
-                  "UI/UX Enthusiast",
-                  "Freelance Developer"
+                  "Web Developer",
+                  "Business Website Specialist",
+                  "Chatbot Developer",
+                  "Landing Page Expert",
+                  "Web App Creator"
                 ]}
                 speed={80}
                 delay={2000}
@@ -156,9 +156,9 @@ const Hero = () => {
               transition={{ duration: 0.5, delay: 0.6 }}
               className="text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8"
             >
-              Crafting exceptional digital experiences with cutting-edge web technologies.
-              Specialized in building high-performance, responsive applications with React.js,
-              Node.js, and modern frameworks.
+              Based in Ahmedabad, Gujarat, India. Crafting exceptional digital experiences for businesses.
+              Specialized in business websites, landing pages, web applications, templates, 
+              membership systems, and intelligent chatbots for modern businesses.
             </motion.p>
             
             <motion.div
@@ -184,17 +184,51 @@ const Hero = () => {
               transition={{ duration: 0.5, delay: 1 }}
               className="flex items-center gap-4 mt-8 justify-center lg:justify-start"
             >
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              <a 
+                href="https://github.com/aryan-dudharejiya" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="GitHub Profile"
+              >
                 <Github size={24} />
                 <span className="sr-only">GitHub</span>
               </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              <a 
+                href="https://www.linkedin.com/in/aryan-dudharejiya" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-muted-foreground hover:text-[#0A66C2] transition-colors"
+                aria-label="LinkedIn Profile"
+              >
                 <Linkedin size={24} />
                 <span className="sr-only">LinkedIn</span>
               </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                <Twitter size={24} />
-                <span className="sr-only">Twitter</span>
+              <a 
+                href="https://instagram.com/aryan_dudharejiya" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-muted-foreground hover:text-[#E4405F] transition-colors"
+                aria-label="Instagram Profile"
+              >
+                <Instagram size={24} />
+                <span className="sr-only">Instagram</span>
+              </a>
+              <a 
+                href="mailto:work.aryandudharejiya@gmail.com" 
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="Email Me"
+              >
+                <Mail size={24} />
+                <span className="sr-only">Email</span>
+              </a>
+              <a 
+                href="tel:+919773254534" 
+                className="text-muted-foreground hover:text-green-600 transition-colors"
+                aria-label="Call Me"
+              >
+                <Phone size={24} />
+                <span className="sr-only">Phone</span>
               </a>
             </motion.div>
           </motion.div>
