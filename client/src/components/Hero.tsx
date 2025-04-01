@@ -254,12 +254,11 @@ const Hero = () => {
             {/* Glow effect behind the model */}
             <div className="absolute w-3/4 h-3/4 rounded-full bg-primary/20 blur-3xl" />
             
-            {/* Enhanced 3D Model with abstract floating elements */}
-            <div className="w-full h-full relative z-10">
-              <ThreeDModel 
-                scrollTrigger={true} 
-                modelType={isMobile ? "laptop" : "abstract"} 
-              />
+            {/* Temporarily replaced 3D model with a simple div for debugging */}
+            <div className="w-full h-full relative z-10 flex items-center justify-center">
+              <div className="bg-primary/20 h-[300px] w-[300px] rounded-full flex items-center justify-center">
+                <span className="text-xl font-semibold">3D Model Placeholder</span>
+              </div>
             </div>
             
             {/* Floating badges */}

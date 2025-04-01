@@ -22,19 +22,25 @@ const CustomCursor = () => {
       setIsVisible(true);
     }, 800);
     
+    // Start with empty trail points to prevent errors
+    setTrailPoints([]);
+    
     // Function to update mouse position with smoothing
     const onMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-      
-      // Update trail points
-      if (trailTimer.current) clearTimeout(trailTimer.current);
-      
-      trailTimer.current = setTimeout(() => {
-        setTrailPoints(prev => {
-          const newPoints = [...prev, { x: e.clientX, y: e.clientY }];
-          return newPoints.slice(-trailPointsCount);
-        });
-      }, 10);
+      // Safely update position when component is mounted
+      if (document.body.contains(document.documentElement)) {
+        setMousePosition({ x: e.clientX, y: e.clientY });
+        
+        // Update trail points with debounce
+        if (trailTimer.current) clearTimeout(trailTimer.current);
+        
+        trailTimer.current = setTimeout(() => {
+          setTrailPoints(prev => {
+            const newPoints = [...prev, { x: e.clientX, y: e.clientY }];
+            return newPoints.slice(-trailPointsCount);
+          });
+        }, 10);
+      }
     };
     
     // Check if hovering over specific elements

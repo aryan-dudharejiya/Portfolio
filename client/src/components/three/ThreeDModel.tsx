@@ -1313,8 +1313,13 @@ const ThreeDModel = ({ scrollTrigger = false, modelType = 'laptop' }: ThreeDMode
         cancelAnimationFrame(frameRef.current);
       }
       
-      if (rendererRef.current && rendererRef.current.domElement.parentElement) {
-        rendererRef.current.domElement.parentElement.removeChild(rendererRef.current.domElement);
+      // Safely remove renderer DOM element
+      if (rendererRef.current && rendererRef.current.domElement) {
+        const parent = rendererRef.current.domElement.parentElement;
+        // Check both that parent exists and contains the element to avoid "not a child" error
+        if (parent && parent.contains(rendererRef.current.domElement)) {
+          parent.removeChild(rendererRef.current.domElement);
+        }
       }
       
       if (isMobile) {

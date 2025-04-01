@@ -143,34 +143,31 @@ const Services = () => {
           </motion.p>
         </div>
         
-        {/* 3D Workspace Model - Only visible on desktop */}
+        {/* Simplified feature box (temporarily replaced 3D workspace) */}
         {!isMobile && (
           <motion.div
             ref={modelAnimation.ref}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={modelAnimation.isVisible ? { opacity: 1, scale: 1 } : {}}
             transition={{ duration: 0.7, type: "spring" }}
-            className="w-full h-[400px] mb-16 rounded-xl overflow-hidden border shadow-lg bg-card/50 backdrop-blur-sm relative"
+            className="w-full mb-16 rounded-xl overflow-hidden border shadow-lg bg-card/50 backdrop-blur-sm relative p-8"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 opacity-30"></div>
-            <div 
-              ref={modelRef} 
-              className="w-full h-full"
-              data-cursor-text="Interact with Model"
-            >
-              <ThreeDModel 
-                scrollTrigger={true} 
-                modelType="workspace" 
-              />
-            </div>
             
             {/* Text overlay */}
-            <div className="absolute left-8 bottom-8 max-w-md p-6 bg-card/80 backdrop-blur-md rounded-lg border shadow-lg">
-              <h3 className="text-xl font-bold mb-2 gradient-text">Cutting-Edge Development</h3>
-              <p className="text-sm text-foreground/80">
+            <div className="max-w-2xl mx-auto text-center">
+              <h3 className="text-2xl font-bold mb-4 gradient-text">Cutting-Edge Development</h3>
+              <p className="text-lg text-foreground/80 mb-6">
                 Experience premium quality development with modern tools and technologies.
                 Bringing your vision to life with precision and innovation.
               </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                {['React', 'Node.js', 'TypeScript', 'ThreeJS', 'MongoDB', 'Tailwind'].map((tech, i) => (
+                  <span key={i} className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium">
+                    {tech}
+                  </span>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}
