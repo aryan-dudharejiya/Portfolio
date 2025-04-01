@@ -1,5 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, ArrowRight, Star, Quote } from 'lucide-react';
 
 interface Testimonial {
   id: number;
@@ -7,162 +12,246 @@ interface Testimonial {
   name: string;
   position: string;
   image: string;
+  rating?: number;
 }
 
 const testimonials: Testimonial[] = [
   {
     id: 1,
-    content: "Alex transformed our outdated website into a beautiful, high-converting platform. The attention to detail and user experience expertise is exceptional. Our sales have increased by 40% since the launch!",
+    content:
+      "Working with this developer was an absolute game-changer for our company. They delivered a sophisticated e-commerce platform with seamless payment integration that increased our conversion rates by 45%. Their technical skills and ability to solve complex problems are exceptional.",
     name: "Sarah Johnson",
-    position: "CEO, EcoStyle Fashion",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces"
+    position: "CEO, TechVision",
+    image: "https://randomuser.me/api/portraits/women/1.jpg",
+    rating: 5
   },
   {
     id: 2,
-    content: "Working with Alex on our custom dashboard application was a game-changer. The intuitive design and seamless functionality exceeded our expectations. Alex is responsive, professional, and truly cares about delivering quality work.",
-    name: "Michael Roberts",
-    position: "Founder, DataVision Analytics",
-    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop&crop=faces"
+    content:
+      "We hired this developer to rebuild our outdated website, and the results exceeded our expectations. The new site is not only visually stunning but also performs incredibly well on all devices. The attention to detail and commitment to delivering high-quality work made all the difference.",
+    name: "Michael Chen",
+    position: "Marketing Director, InnovateX",
+    image: "https://randomuser.me/api/portraits/men/1.jpg",
+    rating: 5
   },
   {
     id: 3,
-    content: "Alex created an e-commerce platform that perfectly captures our brand essence. The site is not only visually stunning but also converts like crazy. Our average order value has increased by 35% since launch!",
-    name: "Jennifer Chen",
-    position: "Marketing Director, Luxe Home Goods",
-    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop&crop=faces"
+    content:
+      "I've worked with many developers over the years, but few have impressed me as much as this one. They have a remarkable ability to translate business needs into functional, beautiful digital solutions. Our web application has received praise from both users and industry experts.",
+    name: "Emily Rodriguez",
+    position: "Product Manager, StartupLaunch",
+    image: "https://randomuser.me/api/portraits/women/2.jpg",
+    rating: 5
+  },
+  {
+    id: 4,
+    content:
+      "This developer built a custom CRM for our sales team that has transformed our operations. Their technical expertise, combined with a deep understanding of our business processes, resulted in a solution that has increased our team's efficiency by 60%. Truly remarkable work!",
+    name: "David Harper",
+    position: "Sales Director, GrowthForce",
+    image: "https://randomuser.me/api/portraits/men/2.jpg",
+    rating: 5
+  },
+  {
+    id: 5,
+    content:
+      "The portfolio website created by this developer has significantly increased my client inquiries. The unique design and smooth animations make my work stand out in a competitive industry. I appreciate their dedication to creating a site that truly represents my brand.",
+    name: "Jessica Williams",
+    position: "Independent Photographer",
+    image: "https://randomuser.me/api/portraits/women/3.jpg",
+    rating: 5
   }
 ];
 
 const Testimonials = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [slideWidth, setSlideWidth] = useState(100);
-  const [slidesPerView, setSlidesPerView] = useState(1);
-  const trackRef = useRef<HTMLDivElement>(null);
-
+  const [direction, setDirection] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const isMobile = useIsMobile();
+  const carouselRef = useRef<HTMLDivElement>(null);
+  
+  const titleAnimation = useScrollAnimation({ threshold: 0.1 });
+  const subtitleAnimation = useScrollAnimation({ threshold: 0.1, delay: 200 });
+  
+  // Auto-rotate testimonials
   useEffect(() => {
-    const handleResize = () => {
-      const newSlidesPerView = window.innerWidth < 768 ? 1 : 2;
-      setSlidesPerView(newSlidesPerView);
-      setSlideWidth(100 / newSlidesPerView);
-      
-      // Reset to first slide when layout changes
-      if (currentIndex > testimonials.length - newSlidesPerView) {
-        setCurrentIndex(0);
-      }
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [currentIndex]);
-
-  const goToSlide = (index: number) => {
-    if (index < 0) {
-      index = testimonials.length - slidesPerView;
-    } else if (index > testimonials.length - slidesPerView) {
-      index = 0;
-    }
+    if (isPaused) return;
     
-    setCurrentIndex(index);
+    const interval = setInterval(() => {
+      setDirection(1);
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % testimonials.length);
+    }, 8000); // Change testimonial every 8 seconds
+    
+    return () => clearInterval(interval);
+  }, [isPaused]);
+  
+  const handlePrev = () => {
+    setDirection(-1);
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + testimonials.length) % testimonials.length);
   };
-
-  const goToPrev = () => goToSlide(currentIndex - 1);
-  const goToNext = () => goToSlide(currentIndex + 1);
-
+  
+  const handleNext = () => {
+    setDirection(1);
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % testimonials.length);
+  };
+  
+  // Pause auto-rotation when hovering over testimonial
+  const handleMouseEnter = () => {
+    setIsPaused(true);
+  };
+  
+  const handleMouseLeave = () => {
+    setIsPaused(false);
+  };
+  
+  // Card animation variants
+  const cardVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? '100%' : '-100%',
+      opacity: 0,
+      scale: 0.9
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.5,
+        type: 'spring',
+        stiffness: 300,
+        damping: 30
+      }
+    },
+    exit: (direction: number) => ({
+      x: direction < 0 ? '100%' : '-100%',
+      opacity: 0,
+      scale: 0.9,
+      transition: {
+        duration: 0.3
+      }
+    })
+  };
+  
+  // Render stars based on rating
+  const renderStars = (rating: number = 5) => {
+    return Array.from({ length: 5 }).map((_, i) => (
+      <Star
+        key={i}
+        size={16}
+        className={i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}
+      />
+    ));
+  };
+  
   return (
-    <section id="testimonials" className="py-20 bg-slate-100 dark:bg-slate-800/50">
-      <div className="container mx-auto px-6">
-        <motion.div 
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2 className="text-3xl md:text-4xl font-bold font-['Poppins'] mb-4">Client <span className="gradient-text">Testimonials</span></h2>
-          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-            Here's what my clients say about working with me.
-          </p>
-        </motion.div>
+    <section id="testimonials" className="py-20 md:py-28 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+      <div className="absolute top-0 left-0 w-48 h-48 rounded-full bg-primary/10 -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-72 h-72 rounded-full bg-secondary/10 translate-x-1/3 translate-y-1/3 blur-3xl"></div>
+      
+      <div className="container mx-auto px-4 md:px-6 relative">
+        {/* Section header */}
+        <div className="text-center mb-16">
+          <motion.h2
+            ref={titleAnimation.ref}
+            initial={{ opacity: 0, y: 20 }}
+            animate={titleAnimation.isVisible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5 }}
+            className="text-3xl md:text-4xl font-bold mb-4"
+          >
+            Client <span className="gradient-text">Testimonials</span>
+          </motion.h2>
+          
+          <motion.p
+            ref={subtitleAnimation.ref}
+            initial={{ opacity: 0, y: 20 }}
+            animate={subtitleAnimation.isVisible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5 }}
+            className="text-muted-foreground max-w-2xl mx-auto"
+          >
+            Don't just take my word for it. Here's what clients have to say about working with me.
+          </motion.p>
+        </div>
         
-        <motion.div 
-          className="relative"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+        {/* Testimonial carousel */}
+        <div 
+          ref={carouselRef}
+          className="max-w-4xl mx-auto relative"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
         >
-          <div className="overflow-hidden">
-            <div 
-              ref={trackRef}
-              className="flex transition-transform duration-500"
-              style={{ transform: `translateX(-${currentIndex * slideWidth}%)` }}
-            >
-              {testimonials.map((testimonial) => (
-                <div 
-                  key={testimonial.id}
-                  className="px-2"
-                  style={{ minWidth: `${slideWidth}%` }}
-                >
-                  <div className="glass rounded-2xl p-8 h-full">
-                    <div className="flex mb-6">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <i key={star} className="bx bxs-star text-yellow-500"></i>
-                      ))}
-                    </div>
-                    <p className="text-slate-600 dark:text-slate-300 mb-6 italic">
-                      "{testimonial.content}"
-                    </p>
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
-                        <img 
-                          src={testimonial.image} 
-                          alt={testimonial.name} 
-                          className="w-full h-full object-cover" 
-                        />
-                      </div>
-                      <div>
-                        <h4 className="font-bold">{testimonial.name}</h4>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">{testimonial.position}</p>
-                      </div>
-                    </div>
+          {/* Quote icon decoration */}
+          <div className="absolute -top-10 -left-10 text-primary/10">
+            <Quote size={isMobile ? 60 : 100} strokeWidth={1} />
+          </div>
+          
+          {/* Testimonial cards */}
+          <div className="relative h-[360px] md:h-[320px] overflow-hidden">
+            <AnimatePresence initial={false} custom={direction} mode="wait">
+              <motion.div
+                key={testimonials[currentIndex].id}
+                custom={direction}
+                variants={cardVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="absolute inset-0 p-6 md:p-10 bg-card border rounded-xl shadow-lg flex flex-col"
+              >
+                <div className="flex items-center space-x-2 mb-4">
+                  {renderStars(testimonials[currentIndex].rating)}
+                </div>
+                
+                <p className="text-card-foreground flex-grow italic mb-6">
+                  "{testimonials[currentIndex].content}"
+                </p>
+                
+                <div className="flex items-center">
+                  <Avatar className="h-12 w-12 mr-4 border-2 border-primary">
+                    <AvatarImage src={testimonials[currentIndex].image} alt={testimonials[currentIndex].name} />
+                    <AvatarFallback>{testimonials[currentIndex].name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  
+                  <div>
+                    <h4 className="font-semibold">{testimonials[currentIndex].name}</h4>
+                    <p className="text-sm text-muted-foreground">{testimonials[currentIndex].position}</p>
                   </div>
                 </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+          
+          {/* Navigation controls */}
+          <div className="flex justify-center mt-8 space-x-4">
+            <Button variant="outline" size="icon" onClick={handlePrev}>
+              <ArrowLeft size={20} />
+              <span className="sr-only">Previous testimonial</span>
+            </Button>
+            
+            <div className="flex items-center space-x-2">
+              {testimonials.map((_, i) => (
+                <button
+                  key={i}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    i === currentIndex
+                      ? 'w-8 bg-primary'
+                      : 'w-2 bg-primary/30 hover:bg-primary/50'
+                  }`}
+                  onClick={() => {
+                    setDirection(i > currentIndex ? 1 : -1);
+                    setCurrentIndex(i);
+                  }}
+                  aria-label={`Go to testimonial ${i + 1}`}
+                />
               ))}
             </div>
+            
+            <Button variant="outline" size="icon" onClick={handleNext}>
+              <ArrowRight size={20} />
+              <span className="sr-only">Next testimonial</span>
+            </Button>
           </div>
-          
-          <button 
-            onClick={goToPrev}
-            className="absolute top-1/2 -left-4 transform -translate-y-1/2 w-12 h-12 rounded-full bg-white dark:bg-slate-700 shadow-lg flex items-center justify-center text-primary z-10"
-            aria-label="Previous testimonial"
-          >
-            <i className="bx bx-chevron-left text-2xl"></i>
-          </button>
-          
-          <button 
-            onClick={goToNext}
-            className="absolute top-1/2 -right-4 transform -translate-y-1/2 w-12 h-12 rounded-full bg-white dark:bg-slate-700 shadow-lg flex items-center justify-center text-primary z-10"
-            aria-label="Next testimonial"
-          >
-            <i className="bx bx-chevron-right text-2xl"></i>
-          </button>
-          
-          <div className="flex justify-center mt-8 space-x-2">
-            {testimonials.slice(0, testimonials.length - slidesPerView + 1).map((_, index) => (
-              <button 
-                key={index}
-                onClick={() => goToSlide(index)}
-                className={`w-3 h-3 rounded-full transition-colors ${
-                  currentIndex === index 
-                    ? 'bg-primary/70' 
-                    : 'bg-slate-300 dark:bg-slate-600'
-                }`}
-                aria-label={`Go to testimonial ${index + 1}`}
-              />
-            ))}
-          </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

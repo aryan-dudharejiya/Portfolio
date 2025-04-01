@@ -1,156 +1,181 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/hooks/useTheme';
-import { Button } from '@/components/ui/button';
-import { Moon, Sun, Menu, X, Download } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-
-const navLinks = [
-  { name: 'Home', href: '#home' },
-  { name: 'Services', href: '#services' },
-  { name: 'Skills', href: '#skills' },
-  { name: 'Projects', href: '#projects' },
-  { name: 'Testimonials', href: '#testimonials' },
-  { name: 'Contact', href: '#contact' },
-];
+import { Button } from '@/components/ui/button';
+import { Sun, Moon, Menu, X } from 'lucide-react';
 
 const Navbar = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState('home');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
-
-  // Handle scroll effect
+  
+  // Navigation links
+  const navLinks = [
+    { href: '#home', label: 'Home' },
+    { href: '#services', label: 'Services' },
+    { href: '#skills', label: 'Skills' },
+    { href: '#projects', label: 'Projects' },
+    { href: '#testimonials', label: 'Testimonials' },
+    { href: '#contact', label: 'Contact' }
+  ];
+  
+  // Track scroll position for navbar styling
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setScrolled(true);
+      if (window.scrollY > 10) {
+        setIsScrolled(true);
       } else {
-        setScrolled(false);
+        setIsScrolled(false);
+      }
+      
+      // Update active section based on scroll position
+      const sections = navLinks.map(link => link.href.substring(1));
+      const scrollPosition = window.scrollY + 100; // Offset to trigger earlier
+      
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const section = document.getElementById(sections[i]);
+        if (section && section.offsetTop <= scrollPosition) {
+          setActiveSection(sections[i]);
+          break;
+        }
       }
     };
-
+    
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
-  // Handle mobile menu close when clicking a link
-  const handleLinkClick = () => {
-    if (mobileMenuOpen) {
-      setMobileMenuOpen(false);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [navLinks]);
+  
+  // Toggle mobile menu
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+  
+  // Close mobile menu when a link is clicked
+  const handleNavLinkClick = () => {
+    if (isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
     }
   };
-
+  
   return (
-    <header
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? 'bg-background/80 backdrop-blur-md shadow-md' : 'bg-transparent'
-      }`}
-    >
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="flex items-center justify-between py-4">
-          {/* Logo */}
-          <motion.a
-            href="#home"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-2xl font-bold relative"
-          >
-            <span className="gradient-text">Dev</span>
-            <span>Portfolio</span>
-            <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-primary to-secondary scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
-          </motion.a>
-
-          {/* Desktop Menu */}
-          <motion.nav
-            className="hidden md:flex items-center space-x-1"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            {navLinks.map((link, index) => (
-              <a
-                key={link.name}
-                href={link.href}
-                className="relative px-3 py-2 text-sm font-medium group hover:text-primary transition-colors"
+    <>
+      <header 
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled 
+            ? 'bg-background/80 backdrop-blur-lg shadow-sm border-b'
+            : 'bg-transparent'
+        }`}
+      >
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="flex items-center justify-between h-16 md:h-20">
+            {/* Logo */}
+            <a href="#home" className="text-xl md:text-2xl font-bold">
+              <span>John</span>
+              <span className="gradient-text">Doe</span>
+            </a>
+            
+            {/* Desktop navigation */}
+            <nav className="hidden md:flex items-center space-x-8">
+              {navLinks.map(({ href, label }) => (
+                <a
+                  key={href}
+                  href={href}
+                  className={`nav-link transition-colors duration-300 ${
+                    activeSection === href.substring(1)
+                      ? 'text-primary font-medium'
+                      : 'text-foreground/80 hover:text-primary'
+                  }`}
+                >
+                  {label}
+                </a>
+              ))}
+            </nav>
+            
+            {/* Theme toggle & mobile menu button */}
+            <div className="flex items-center">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                className="mr-2"
               >
-                {link.name}
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
-              </a>
-            ))}
-          </motion.nav>
-
-          {/* Right side buttons */}
-          <motion.div
-            className="flex items-center space-x-2"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            {/* Theme toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-              className="rounded-full"
-            >
-              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </Button>
-
-            {/* Resume button */}
-            <Button size="sm" className="hidden md:flex rounded-full">
-              <Download className="mr-2 h-4 w-4" /> Resume
-            </Button>
-
-            {/* Mobile menu button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden"
-              aria-label="Toggle menu"
-            >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
-          </motion.div>
+                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="hidden md:flex"
+                onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                Get in Touch
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleMobileMenu}
+                aria-label="Toggle menu"
+                className="md:hidden"
+              >
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
-
-      {/* Mobile Menu */}
+      </header>
+      
+      {/* Mobile navigation overlay */}
       <AnimatePresence>
-        {mobileMenuOpen && (
+        {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
             transition={{ duration: 0.3 }}
-            className="md:hidden bg-background/95 backdrop-blur-md"
+            className="fixed inset-0 z-40 bg-background/95 backdrop-blur-md md:hidden"
           >
-            <div className="container mx-auto px-4 py-4">
-              <nav className="flex flex-col space-y-4">
-                {navLinks.map((link, index) => (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    onClick={handleLinkClick}
-                    className="px-4 py-2 text-sm font-medium hover:text-primary border-b border-border/20"
+            <div className="flex flex-col h-full pt-20 pb-6 px-6">
+              <nav className="flex flex-col space-y-6 items-center justify-center flex-1">
+                {navLinks.map(({ href, label }) => (
+                  <motion.a
+                    key={href}
+                    href={href}
+                    className={`text-xl ${
+                      activeSection === href.substring(1)
+                        ? 'text-primary font-medium'
+                        : 'text-foreground/80'
+                    }`}
+                    onClick={handleNavLinkClick}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 * navLinks.findIndex(link => link.href === href) }}
                   >
-                    {link.name}
-                  </a>
+                    {label}
+                  </motion.a>
                 ))}
-                <Button size="sm" className="rounded-full">
-                  <Download className="mr-2 h-4 w-4" /> Resume
-                </Button>
               </nav>
+              
+              <div className="mt-auto">
+                <Button 
+                  className="w-full" 
+                  onClick={() => {
+                    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+                    handleNavLinkClick();
+                  }}
+                >
+                  Get in Touch
+                </Button>
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 };
 

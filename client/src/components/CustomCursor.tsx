@@ -1,132 +1,116 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useTheme } from '@/hooks/useTheme';
 
 const CustomCursor = () => {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isPointer, setIsPointer] = useState(false);
-  const [isHidden, setIsHidden] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isHovering, setIsHovering] = useState(false);
   const [isClicking, setIsClicking] = useState(false);
-  const { theme } = useTheme();
-
+  const [isVisible, setIsVisible] = useState(false);
+  
   useEffect(() => {
+    // Only show cursor after it has moved
+    const timeout = setTimeout(() => {
+      setIsVisible(true);
+    }, 1000);
+    
+    // Function to update mouse position
     const onMouseMove = (e: MouseEvent) => {
-      setPosition({ x: e.clientX, y: e.clientY });
-
-      // Check if cursor is over a clickable element
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    
+    // Check if hovering over clickable elements
+    const onMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const clickableElements = ['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'];
-      
-      if (
-        clickableElements.includes(target.tagName) ||
+      const isClickable = 
+        target.tagName === 'BUTTON' || 
+        target.tagName === 'A' || 
+        target.closest('button') || 
         target.closest('a') ||
-        target.closest('button') ||
-        target.onclick ||
-        window.getComputedStyle(target).cursor === 'pointer'
-      ) {
-        setIsPointer(true);
-      } else {
-        setIsPointer(false);
-      }
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.closest('[role="button"]');
+      
+      setIsHovering(!!isClickable);
     };
-
-    const onMouseDown = () => {
-      setIsClicking(true);
-    };
-
-    const onMouseUp = () => {
-      setIsClicking(false);
-    };
-
+    
+    // Handle mouse clicks
+    const onMouseDown = () => setIsClicking(true);
+    const onMouseUp = () => setIsClicking(false);
+    
+    // Handle cursor leaving the window
     const onMouseLeave = () => {
-      setIsHidden(true);
+      setIsVisible(false);
     };
-
+    
     const onMouseEnter = () => {
-      setIsHidden(false);
+      setIsVisible(true);
     };
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mousedown', onMouseDown);
-    window.addEventListener('mouseup', onMouseUp);
-    document.body.addEventListener('mouseleave', onMouseLeave);
-    document.body.addEventListener('mouseenter', onMouseEnter);
-
+    
+    // Register event listeners
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseover', onMouseOver);
+    document.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('mouseleave', onMouseLeave);
+    document.addEventListener('mouseenter', onMouseEnter);
+    
+    // Remove event listeners on cleanup
     return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mousedown', onMouseDown);
-      window.removeEventListener('mouseup', onMouseUp);
-      document.body.removeEventListener('mouseleave', onMouseLeave);
-      document.body.removeEventListener('mouseenter', onMouseEnter);
+      clearTimeout(timeout);
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseover', onMouseOver);
+      document.removeEventListener('mousedown', onMouseDown);
+      document.removeEventListener('mouseup', onMouseUp);
+      document.removeEventListener('mouseleave', onMouseLeave);
+      document.removeEventListener('mouseenter', onMouseEnter);
     };
   }, []);
-
-  // Media query for mobile devices
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-
-    checkIfMobile();
-    window.addEventListener('resize', checkIfMobile);
-
-    return () => {
-      window.removeEventListener('resize', checkIfMobile);
-    };
-  }, []);
-
-  // Don't render custom cursor on mobile devices
-  if (isMobile) return null;
-
+  
   return (
     <>
-      {/* Main cursor ring */}
+      {/* Add a class to the body to hide the default cursor */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          body {
+            cursor: ${isVisible ? 'none' : 'auto'};
+          }
+          a, button, input, textarea, [role="button"] {
+            cursor: ${isVisible ? 'none' : 'pointer'} !important;
+          }
+        `
+      }} />
+    
+      {/* Outer circle cursor */}
       <motion.div
-        className="fixed z-50 pointer-events-none rounded-full"
-        style={{
-          left: position.x,
-          top: position.y,
-          backgroundColor: 'transparent',
-          border: `1.5px solid ${theme === 'dark' ? '#EC4899' : '#6366F1'}`, // Theme-based colors
-          opacity: isHidden ? 0 : 0.8,
-        }}
+        className="fixed top-0 left-0 w-8 h-8 rounded-full border-2 border-primary pointer-events-none z-[9999] mix-blend-difference"
         animate={{
-          width: isPointer ? 40 : isClicking ? 16 : 24,
-          height: isPointer ? 40 : isClicking ? 16 : 24,
-          x: isPointer ? -20 : isClicking ? -8 : -12,
-          y: isPointer ? -20 : isClicking ? -8 : -12,
-          opacity: isHidden ? 0 : 0.8,
+          x: mousePosition.x - 16,
+          y: mousePosition.y - 16,
+          scale: isHovering ? 1.5 : isClicking ? 0.8 : 1,
+          opacity: isVisible ? 1 : 0
         }}
         transition={{
           type: 'spring',
-          stiffness: 500,
+          stiffness: 350,
           damping: 28,
+          mass: 0.5
         }}
       />
-
-      {/* Inner dot */}
+      
+      {/* Inner dot cursor */}
       <motion.div
-        className="fixed z-50 pointer-events-none rounded-full"
-        style={{
-          left: position.x,
-          top: position.y,
-          backgroundColor: theme === 'dark' ? '#EC4899' : '#6366F1', // Theme-based colors
-          opacity: isHidden ? 0 : isPointer ? 0.5 : 0.8,
-        }}
+        className="fixed top-0 left-0 w-2 h-2 rounded-full bg-primary pointer-events-none z-[9999] mix-blend-difference"
         animate={{
-          width: isPointer ? 6 : isClicking ? 12 : 6,
-          height: isPointer ? 6 : isClicking ? 12 : 6,
-          x: -3,
-          y: -3,
-          opacity: isHidden ? 0 : isPointer ? 0.5 : 0.8,
-          scale: isClicking ? 1.5 : 1,
+          x: mousePosition.x - 4,
+          y: mousePosition.y - 4,
+          scale: isHovering ? 0 : isClicking ? 1.2 : 1,
+          opacity: isVisible ? 1 : 0
         }}
         transition={{
           type: 'spring',
           stiffness: 500,
           damping: 28,
+          mass: 0.2
         }}
       />
     </>

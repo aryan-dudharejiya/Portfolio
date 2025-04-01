@@ -1,5 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ChevronRight, Github, ExternalLink } from 'lucide-react';
 
 type ProjectCategory = 'all' | 'website' | 'webapp' | 'ecommerce';
 
@@ -10,193 +15,269 @@ interface Project {
   imageUrl: string;
   category: Exclude<ProjectCategory, 'all'>;
   technologies: string[];
+  githubUrl?: string;
+  liveUrl?: string;
 }
 
 const projects: Project[] = [
   {
     id: 1,
-    title: "Analytics Dashboard",
-    description: "Interactive analytics dashboard with real-time data visualization.",
-    imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=500&fit=crop",
-    category: "webapp",
-    technologies: ["React", "Node.js", "Socket.io"]
+    title: "E-Commerce Platform",
+    description: "A full-featured e-commerce platform with product catalog, shopping cart, payment integration, and admin dashboard.",
+    imageUrl: "https://images.unsplash.com/photo-1556742031-c6961e8560b0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
+    category: "ecommerce",
+    technologies: ["React", "Node.js", "MongoDB", "Express", "Stripe"],
+    githubUrl: "#",
+    liveUrl: "#"
   },
   {
     id: 2,
-    title: "Gourmet Restaurant",
-    description: "Modern website with online reservations and menu management.",
-    imageUrl: "https://images.unsplash.com/photo-1600267185393-e158a98703de?w=800&h=500&fit=crop",
+    title: "Portfolio Website",
+    description: "A modern personal portfolio website with smooth animations, 3D elements, and responsive design.",
+    imageUrl: "https://images.unsplash.com/photo-1545235617-9465d2a55698?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
     category: "website",
-    technologies: ["React", "MongoDB", "Express"]
+    technologies: ["React", "Three.js", "Framer Motion", "Tailwind CSS"],
+    githubUrl: "#",
+    liveUrl: "#"
   },
   {
     id: 3,
-    title: "Luxury Fashion Store",
-    description: "Complete e-commerce solution with payment processing and inventory management.",
-    imageUrl: "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=800&h=500&fit=crop",
-    category: "ecommerce",
-    technologies: ["React", "Node.js", "Stripe"]
+    title: "Task Management App",
+    description: "A collaborative task management application with real-time updates, task assignments, and project tracking.",
+    imageUrl: "https://images.unsplash.com/photo-1611224885990-ab7363d7f2a9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
+    category: "webapp",
+    technologies: ["React", "Firebase", "Redux", "Material UI"],
+    githubUrl: "#",
+    liveUrl: "#"
   },
   {
     id: 4,
-    title: "Team Collaboration Platform",
-    description: "Real-time collaboration tool with task management and chat features.",
-    imageUrl: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&h=500&fit=crop",
-    category: "webapp",
-    technologies: ["React", "Firebase", "WebRTC"]
+    title: "Real Estate Website",
+    description: "A property listing website with advanced search, filtering options, and virtual tour features.",
+    imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
+    category: "website",
+    technologies: ["Next.js", "Tailwind CSS", "MongoDB", "Mapbox"],
+    githubUrl: "#",
+    liveUrl: "#"
   },
   {
     id: 5,
-    title: "Elite Fitness Studio",
-    description: "Responsive website with class booking system and member portal.",
-    imageUrl: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=500&fit=crop",
-    category: "website",
-    technologies: ["React", "Express", "MongoDB"]
+    title: "Food Delivery App",
+    description: "A food delivery platform with restaurant listings, order tracking, and payment processing.",
+    imageUrl: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
+    category: "ecommerce",
+    technologies: ["React Native", "Node.js", "Express", "MongoDB", "Stripe"],
+    githubUrl: "#",
+    liveUrl: "#"
   },
   {
     id: 6,
-    title: "Digital Products Marketplace",
-    description: "Platform for selling digital products with secure download delivery.",
-    imageUrl: "https://images.unsplash.com/photo-1607082349566-187342175e2f?w=800&h=500&fit=crop",
-    category: "ecommerce",
-    technologies: ["React", "Node.js", "AWS S3"]
+    title: "Social Media Dashboard",
+    description: "A comprehensive analytics dashboard for social media management and performance tracking.",
+    imageUrl: "https://images.unsplash.com/photo-1518186285589-2f7649de83e0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
+    category: "webapp",
+    technologies: ["React", "Chart.js", "Node.js", "Express", "PostgreSQL"],
+    githubUrl: "#",
+    liveUrl: "#"
   }
 ];
 
+const allCategories: ProjectCategory[] = ['all', 'website', 'webapp', 'ecommerce'];
+
 const Projects = () => {
-  const [activeFilter, setActiveFilter] = useState<ProjectCategory>('all');
-
-  const filteredProjects = activeFilter === 'all' 
+  const [activeCategory, setActiveCategory] = useState<ProjectCategory>('all');
+  const [hoveredProject, setHoveredProject] = useState<number | null>(null);
+  const isMobile = useIsMobile();
+  
+  const titleAnimation = useScrollAnimation({ threshold: 0.1 });
+  const subtitleAnimation = useScrollAnimation({ threshold: 0.1, delay: 200 });
+  const filtersAnimation = useScrollAnimation({ threshold: 0.1, delay: 300 });
+  
+  // Filter projects based on active category
+  const filteredProjects = activeCategory === 'all' 
     ? projects 
-    : projects.filter(project => project.category === activeFilter);
-
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const item = {
-    hidden: { y: 20, opacity: 0 },
-    show: { 
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.5
-      }
-    }
-  };
-
+    : projects.filter(project => project.category === activeCategory);
+  
   return (
-    <section id="projects" className="py-20 relative">
-      <div className="container mx-auto px-6">
-        <motion.div 
-          className="text-center mb-16"
+    <section id="projects" className="py-20 md:py-28 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+      <div className="absolute top-40 left-0 w-64 h-64 rounded-full bg-primary/5 blur-3xl"></div>
+      <div className="absolute bottom-20 right-0 w-72 h-72 rounded-full bg-secondary/5 blur-3xl"></div>
+      
+      <div className="container mx-auto px-4 md:px-6 relative">
+        {/* Section header */}
+        <div className="text-center mb-12">
+          <motion.h2
+            ref={titleAnimation.ref}
+            initial={{ opacity: 0, y: 20 }}
+            animate={titleAnimation.isVisible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5 }}
+            className="text-3xl md:text-4xl font-bold mb-4"
+          >
+            Featured <span className="gradient-text">Projects</span>
+          </motion.h2>
+          
+          <motion.p
+            ref={subtitleAnimation.ref}
+            initial={{ opacity: 0, y: 20 }}
+            animate={subtitleAnimation.isVisible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5 }}
+            className="text-muted-foreground max-w-2xl mx-auto"
+          >
+            Explore my portfolio of web applications, websites, and digital experiences.
+            Each project represents a unique challenge and solution.
+          </motion.p>
+        </div>
+        
+        {/* Category filters */}
+        <motion.div
+          ref={filtersAnimation.ref}
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          animate={filtersAnimation.isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
+          className="flex flex-wrap justify-center gap-3 mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-bold font-['Poppins'] mb-4">Featured <span className="gradient-text">Projects</span></h2>
-          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-            Check out some of my recent work that showcases my expertise.
-          </p>
+          {allCategories.map((category) => (
+            <Button
+              key={category}
+              variant={activeCategory === category ? "default" : "outline"}
+              size="sm"
+              onClick={() => setActiveCategory(category)}
+              className="capitalize"
+            >
+              {category}
+            </Button>
+          ))}
         </motion.div>
         
-        <motion.div 
-          className="flex gap-4 mb-10 justify-center overflow-x-auto py-2"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <button 
-            className={`px-4 py-2 rounded-full font-medium transition-colors ${
-              activeFilter === 'all' 
-                ? 'bg-primary/10 text-primary dark:bg-primary/30 dark:text-primary/90' 
-                : 'hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/30 dark:hover:text-primary/90'
-            }`}
-            onClick={() => setActiveFilter('all')}
-          >
-            All
-          </button>
-          <button 
-            className={`px-4 py-2 rounded-full font-medium transition-colors ${
-              activeFilter === 'website' 
-                ? 'bg-primary/10 text-primary dark:bg-primary/30 dark:text-primary/90' 
-                : 'hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/30 dark:hover:text-primary/90'
-            }`}
-            onClick={() => setActiveFilter('website')}
-          >
-            Websites
-          </button>
-          <button 
-            className={`px-4 py-2 rounded-full font-medium transition-colors ${
-              activeFilter === 'webapp' 
-                ? 'bg-primary/10 text-primary dark:bg-primary/30 dark:text-primary/90' 
-                : 'hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/30 dark:hover:text-primary/90'
-            }`}
-            onClick={() => setActiveFilter('webapp')}
-          >
-            Web Apps
-          </button>
-          <button 
-            className={`px-4 py-2 rounded-full font-medium transition-colors ${
-              activeFilter === 'ecommerce' 
-                ? 'bg-primary/10 text-primary dark:bg-primary/30 dark:text-primary/90' 
-                : 'hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/30 dark:hover:text-primary/90'
-            }`}
-            onClick={() => setActiveFilter('ecommerce')}
-          >
-            E-commerce
-          </button>
-        </motion.div>
-        
+        {/* Projects grid */}
         <AnimatePresence mode="wait">
-          <motion.div 
-            key={activeFilter}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-            variants={container}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            exit={{ opacity: 0 }}
+          <motion.div
+            key={activeCategory}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
           >
-            {filteredProjects.map((project) => (
-              <motion.div 
+            {filteredProjects.map((project, index) => (
+              <ProjectCard
                 key={project.id}
-                variants={item}
-                className="glass rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl group relative"
-                whileHover={{ y: -10 }}
-              >
-                <img 
-                  src={project.imageUrl} 
-                  alt={project.title} 
-                  className="w-full h-60 object-cover object-top transition-transform duration-500 group-hover:scale-110" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent opacity-0 group-hover:opacity-70 transition-opacity duration-300 flex items-end">
-                  <div className="p-6 w-full">
-                    <h3 className="text-xl font-bold text-white mb-2">{project.title}</h3>
-                    <p className="text-slate-200 mb-4">{project.description}</p>
-                    <div className="flex gap-2 flex-wrap">
-                      {project.technologies.map((tech, index) => (
-                        <span key={index} className="text-xs bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
+                project={project}
+                index={index}
+                isHovered={hoveredProject === project.id}
+                onHover={() => setHoveredProject(project.id)}
+                onLeave={() => setHoveredProject(null)}
+              />
             ))}
           </motion.div>
         </AnimatePresence>
+        
+        {/* More projects button */}
+        <div className="mt-12 text-center">
+          <Button size="lg" variant="outline" className="gap-2">
+            View All Projects <ChevronRight size={16} />
+          </Button>
+        </div>
       </div>
     </section>
+  );
+};
+
+interface ProjectCardProps {
+  project: Project;
+  index: number;
+  isHovered: boolean;
+  onHover: () => void;
+  onLeave: () => void;
+}
+
+const ProjectCard = ({ project, index, isHovered, onHover, onLeave }: ProjectCardProps) => {
+  const cardAnimation = useScrollAnimation({ 
+    threshold: 0.1,
+    delay: index * 100 // Stagger effect
+  });
+  
+  return (
+    <motion.div
+      ref={cardAnimation.ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={cardAnimation.isVisible ? { opacity: 1, y: 0 } : {}}
+      transition={{ 
+        duration: 0.5,
+        type: "spring",
+        stiffness: 100,
+        damping: 20
+      }}
+      className="group relative h-[350px] rounded-lg overflow-hidden border bg-card"
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+    >
+      {/* Project image */}
+      <div className="absolute inset-0 bg-black/50 z-10"></div>
+      <img 
+        src={project.imageUrl} 
+        alt={project.title}
+        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+      />
+      
+      {/* Project info overlay */}
+      <div className="absolute inset-0 z-20 p-6 flex flex-col justify-end">
+        <div className="space-y-2">
+          <div className="flex gap-2 mb-2">
+            <Badge variant="secondary" className="capitalize">
+              {project.category}
+            </Badge>
+          </div>
+          
+          <h3 className="text-xl font-bold text-white">{project.title}</h3>
+          
+          <p className="text-white/80 text-sm line-clamp-2 mb-4">
+            {project.description}
+          </p>
+          
+          {/* Technology tags */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {project.technologies.slice(0, 3).map((tech, i) => (
+              <span 
+                key={i}
+                className="text-xs px-2 py-1 bg-white/10 text-white/90 rounded"
+              >
+                {tech}
+              </span>
+            ))}
+            {project.technologies.length > 3 && (
+              <span className="text-xs px-2 py-1 bg-white/10 text-white/90 rounded">
+                +{project.technologies.length - 3}
+              </span>
+            )}
+          </div>
+          
+          {/* Action buttons */}
+          <div className="flex gap-3">
+            {project.githubUrl && (
+              <Button size="sm" variant="outline" className="bg-black/30 text-white border-white/20 hover:bg-black/50 hover:text-white">
+                <Github size={16} className="mr-1" /> Code
+              </Button>
+            )}
+            {project.liveUrl && (
+              <Button size="sm" className="gap-1">
+                <ExternalLink size={16} /> Demo
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Hover effect */}
+      <motion.div 
+        className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent z-10"
+        initial={{ opacity: 0.7 }}
+        animate={{ opacity: isHovered ? 0.9 : 0.7 }}
+        transition={{ duration: 0.3 }}
+      />
+    </motion.div>
   );
 };
 

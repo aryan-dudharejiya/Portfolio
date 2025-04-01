@@ -4,108 +4,109 @@ import { Button } from '@/components/ui/button';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-
+  
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth',
+      behavior: 'smooth'
     });
   };
-
+  
   return (
-    <footer className="bg-muted/30 py-12 relative">
-      <div className="container mx-auto px-4 md:px-6">
-        {/* Back to top button */}
-        <div className="absolute -top-5 left-1/2 -translate-x-1/2">
-          <Button
-            onClick={scrollToTop}
-            size="icon"
-            className="rounded-full h-10 w-10 shadow-lg"
-          >
-            <ArrowUp className="h-5 w-5" />
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* First column - Logo & Description */}
+    <footer className="bg-card border-t">
+      <div className="container mx-auto px-4 md:px-6 py-12 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+          {/* Brand */}
           <div className="space-y-4">
             <h3 className="text-2xl font-bold">
-              <span className="gradient-text">Dev</span>Portfolio
+              <span>John</span>
+              <span className="gradient-text">Doe</span>
             </h3>
             <p className="text-muted-foreground max-w-xs">
-              Creating seamless, beautiful and functional web experiences. 
-              Specializing in the MERN stack and modern web technologies.
+              Creating exceptional digital experiences with cutting-edge web technologies.
             </p>
             
-            {/* Social Links */}
+            {/* Social links */}
             <div className="flex space-x-4 mt-6">
-              <motion.a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ y: -5 }}
-                className="bg-background p-2 rounded-full text-foreground hover:text-primary transition-colors"
-              >
-                <Github className="h-5 w-5" />
-              </motion.a>
-              <motion.a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ y: -5 }}
-                className="bg-background p-2 rounded-full text-foreground hover:text-primary transition-colors"
-              >
-                <Linkedin className="h-5 w-5" />
-              </motion.a>
-              <motion.a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ y: -5 }}
-                className="bg-background p-2 rounded-full text-foreground hover:text-primary transition-colors"
-              >
-                <Twitter className="h-5 w-5" />
-              </motion.a>
-              <motion.a
-                href="mailto:example@email.com"
-                whileHover={{ y: -5 }}
-                className="bg-background p-2 rounded-full text-foreground hover:text-primary transition-colors"
-              >
-                <Mail className="h-5 w-5" />
-              </motion.a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                <Github size={20} />
+                <span className="sr-only">GitHub</span>
+              </a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                <Linkedin size={20} />
+                <span className="sr-only">LinkedIn</span>
+              </a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                <Twitter size={20} />
+                <span className="sr-only">Twitter</span>
+              </a>
+              <a href="mailto:contact@johndoe.com" className="text-muted-foreground hover:text-primary transition-colors">
+                <Mail size={20} />
+                <span className="sr-only">Email</span>
+              </a>
             </div>
           </div>
           
-          {/* Second column - Quick Links */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold">Quick Links</h4>
-            <div className="grid grid-cols-2 gap-2">
-              <a href="#home" className="text-muted-foreground hover:text-primary transition-colors">Home</a>
-              <a href="#services" className="text-muted-foreground hover:text-primary transition-colors">Services</a>
-              <a href="#skills" className="text-muted-foreground hover:text-primary transition-colors">Skills</a>
-              <a href="#projects" className="text-muted-foreground hover:text-primary transition-colors">Projects</a>
-              <a href="#testimonials" className="text-muted-foreground hover:text-primary transition-colors">Testimonials</a>
-              <a href="#contact" className="text-muted-foreground hover:text-primary transition-colors">Contact</a>
-            </div>
+          {/* Navigation */}
+          <div>
+            <h4 className="text-lg font-semibold mb-4">Navigation</h4>
+            <nav className="space-y-2">
+              <a href="#home" className="block text-muted-foreground hover:text-primary transition-colors">Home</a>
+              <a href="#services" className="block text-muted-foreground hover:text-primary transition-colors">Services</a>
+              <a href="#skills" className="block text-muted-foreground hover:text-primary transition-colors">Skills</a>
+              <a href="#projects" className="block text-muted-foreground hover:text-primary transition-colors">Projects</a>
+              <a href="#testimonials" className="block text-muted-foreground hover:text-primary transition-colors">Testimonials</a>
+              <a href="#contact" className="block text-muted-foreground hover:text-primary transition-colors">Contact</a>
+            </nav>
           </div>
           
-          {/* Third column - Contact Info */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold">Contact Info</h4>
-            <div className="space-y-2">
-              <p className="text-muted-foreground">Email: example@email.com</p>
-              <p className="text-muted-foreground">Phone: +1 (555) 123-4567</p>
-              <p className="text-muted-foreground">Location: San Francisco, CA</p>
-            </div>
+          {/* Services */}
+          <div>
+            <h4 className="text-lg font-semibold mb-4">Services</h4>
+            <ul className="space-y-2">
+              <li className="text-muted-foreground">UI/UX Design</li>
+              <li className="text-muted-foreground">Frontend Development</li>
+              <li className="text-muted-foreground">Backend Development</li>
+              <li className="text-muted-foreground">Mobile-First Development</li>
+              <li className="text-muted-foreground">Database Design</li>
+            </ul>
+          </div>
+          
+          {/* Contact */}
+          <div>
+            <h4 className="text-lg font-semibold mb-4">Contact</h4>
+            <ul className="space-y-2">
+              <li className="text-muted-foreground">San Francisco, CA, USA</li>
+              <li className="text-muted-foreground">+1 (234) 567-890</li>
+              <li className="text-muted-foreground">contact@johndoe.com</li>
+            </ul>
+            
+            {/* Scroll to top button */}
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="mt-6"
+              onClick={scrollToTop}
+              aria-label="Scroll to top"
+            >
+              <ArrowUp size={18} />
+            </Button>
           </div>
         </div>
         
-        {/* Copyright */}
-        <div className="border-t border-border/40 mt-10 pt-6 text-center text-sm text-muted-foreground">
-          <p>© {currentYear} DevPortfolio. All rights reserved.</p>
-          <p className="mt-1">
-            <span className="text-primary">Designed & Built</span> with passion
-          </p>
+        {/* Bottom bar */}
+        <div className="mt-16 pt-8 border-t">
+          <div className="flex flex-col sm:flex-row justify-between items-center">
+            <p className="text-muted-foreground text-sm">
+              © {currentYear} John Doe. All rights reserved.
+            </p>
+            
+            <div className="mt-4 sm:mt-0 flex space-x-4 text-sm text-muted-foreground">
+              <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>
+              <span className="select-none">•</span>
+              <a href="#" className="hover:text-primary transition-colors">Terms of Service</a>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

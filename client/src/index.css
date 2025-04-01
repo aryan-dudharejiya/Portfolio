@@ -117,6 +117,35 @@
   animation: pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* Background grid pattern */
+.bg-grid-pattern {
+  background-size: 50px 50px;
+  background-image: linear-gradient(to right, theme('colors.border') 1px, transparent 1px),
+                   linear-gradient(to bottom, theme('colors.border') 1px, transparent 1px);
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary/30 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary/50;
+}
+
+/* Custom selection color */
+::selection {
+  @apply bg-primary/20 text-primary;
+}
+
 /* Responsive styles */
 @media screen and (max-width: 768px) {
   .custom-cursor {
