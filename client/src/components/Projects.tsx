@@ -145,7 +145,9 @@ const Projects = () => {
               variant={activeCategory === category ? "default" : "outline"}
               size="sm"
               onClick={() => setActiveCategory(category)}
-              className="capitalize"
+              className="capitalize focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              aria-pressed={activeCategory === category}
+              aria-label={`Filter projects by ${category} category`}
             >
               {category}
             </Button>
@@ -180,11 +182,13 @@ const Projects = () => {
           <Button 
             size="lg" 
             variant="outline" 
-            className="gap-2 group hover:border-primary hover:bg-primary/5 transition-all"
+            className="gap-2 group hover:border-primary hover:bg-primary/5 transition-all focus:ring-2 focus:ring-primary focus:ring-offset-2"
             onClick={() => setActiveCategory('all')}
+            aria-label="View all projects in every category"
+            aria-pressed={activeCategory === 'all'}
           >
             View All Projects 
-            <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" aria-hidden="true" />
           </Button>
         </div>
       </div>
@@ -222,6 +226,15 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }: ProjectCar
       onMouseLeave={onLeave}
       whileHover={{ y: -8 }}
       onClick={() => window.location.href = `/projects/${project.id}`}
+      role="article"
+      aria-label={`Project: ${project.title}`}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          window.location.href = `/projects/${project.id}`;
+        }
+      }}
     >
       {/* Project image */}
       <img 
@@ -315,6 +328,11 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }: ProjectCar
                 size="sm" 
                 variant="outline" 
                 className="bg-black/30 text-white border-white/20 hover:bg-primary/80 hover:border-transparent hover:text-white hover:scale-105 transition-all"
+                aria-label={`View source code for ${project.title}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(project.githubUrl, '_blank');
+                }}
               >
                 <Github size={16} className="mr-1" /> Code
               </Button>
@@ -323,6 +341,11 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }: ProjectCar
               <Button 
                 size="sm" 
                 className="bg-primary hover:bg-primary/90 hover:scale-105 transition-all gap-1"
+                aria-label={`View live demo of ${project.title}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(project.liveUrl, '_blank');
+                }}
               >
                 <ExternalLink size={16} /> Demo
               </Button>
@@ -355,8 +378,19 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }: ProjectCar
             window.location.href = `/projects/${project.id}`;
           }}
         >
-          <Badge className="bg-primary/90 hover:bg-primary text-white px-3 py-1.5 text-xs cursor-pointer flex items-center gap-1">
-            View Case Study <ArrowRight size={12} />
+          <Badge 
+            className="bg-primary/90 hover:bg-primary text-white px-3 py-1.5 text-xs cursor-pointer flex items-center gap-1 focus:ring-2 focus:ring-white focus:ring-offset-1"
+            tabIndex={0}
+            role="link"
+            aria-label={`View detailed case study for ${project.title}`}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                window.location.href = `/projects/${project.id}`;
+              }
+            }}
+          >
+            View Case Study <ArrowRight size={12} aria-hidden="true" />
           </Badge>
         </motion.div>
       )}

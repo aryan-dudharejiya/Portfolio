@@ -124,7 +124,12 @@ const Contact = () => {
   };
   
   return (
-    <section id="contact" className="py-20 md:py-28 relative overflow-hidden">
+    <section 
+      id="contact" 
+      className="py-20 md:py-28 relative overflow-hidden"
+      aria-labelledby="contact-heading"
+      role="region"
+    >
       {/* Background decoration */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
       <div className="absolute bottom-0 right-0 w-64 h-64 rounded-full bg-primary/5 blur-3xl"></div>
@@ -134,6 +139,7 @@ const Contact = () => {
         {/* Section header */}
         <div className="text-center mb-16">
           <motion.h2
+            id="contact-heading"
             ref={titleAnimation.ref}
             initial={{ opacity: 0, y: 20 }}
             animate={titleAnimation.isVisible ? { opacity: 1, y: 0 } : {}}
@@ -169,6 +175,7 @@ const Contact = () => {
             <div className="absolute -bottom-20 -left-20 w-40 h-40 rounded-full bg-secondary/5 blur-xl"></div>
             
             <motion.h3 
+              id="contact-form-heading"
               className="text-xl font-semibold mb-6 relative inline-block"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -184,7 +191,12 @@ const Contact = () => {
             </motion.h3>
             
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form 
+                onSubmit={form.handleSubmit(onSubmit)} 
+                className="space-y-6"
+                aria-labelledby="contact-form-heading"
+                noValidate
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -514,17 +526,63 @@ const Contact = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.5 }}
+                role="group"
+                aria-label="Social media links"
               >
-                <a href="#" className="p-2 rounded-full bg-card hover:bg-primary/10 transition-colors">
+                <a 
+                  href="#" 
+                  className="p-2 rounded-full bg-card hover:bg-primary/10 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  aria-label="GitHub Profile"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.currentTarget.click();
+                    }
+                  }}
+                >
                   <Github className="h-5 w-5 text-foreground hover:text-primary transition-colors" />
                 </a>
-                <a href="#" className="p-2 rounded-full bg-card hover:bg-primary/10 transition-colors">
+                <a 
+                  href="#" 
+                  className="p-2 rounded-full bg-card hover:bg-primary/10 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  aria-label="LinkedIn Profile"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.currentTarget.click();
+                    }
+                  }}
+                >
                   <Linkedin className="h-5 w-5 text-foreground hover:text-primary transition-colors" />
                 </a>
-                <a href="#" className="p-2 rounded-full bg-card hover:bg-primary/10 transition-colors">
+                <a 
+                  href="#" 
+                  className="p-2 rounded-full bg-card hover:bg-primary/10 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  aria-label="Twitter Profile"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.currentTarget.click();
+                    }
+                  }}
+                >
                   <Twitter className="h-5 w-5 text-foreground hover:text-primary transition-colors" />
                 </a>
-                <a href="#" className="p-2 rounded-full bg-card hover:bg-primary/10 transition-colors">
+                <a 
+                  href="#" 
+                  className="p-2 rounded-full bg-card hover:bg-primary/10 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  aria-label="Instagram Profile"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.currentTarget.click();
+                    }
+                  }}
+                >
                   <Instagram className="h-5 w-5 text-foreground hover:text-primary transition-colors" />
                 </a>
               </motion.div>

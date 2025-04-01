@@ -9,6 +9,7 @@ import SEOHead from "./components/SEOHead";
 import { ThemeProvider } from "./context/ThemeContext";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
+import { SkipToContent, MainContent } from "./components/AccessibilityComponents";
 
 // Lazy load the project details page for better performance
 const ProjectDetails = lazy(() => import("./pages/project-details"));
@@ -66,10 +67,11 @@ function App() {
       <ThemeProvider>
         <HelmetProvider>
           <SEOHead />
+          <SkipToContent />
           <CustomCursor />
-          <main className="flex flex-col min-h-screen overflow-x-hidden">
+          <MainContent className="flex flex-col min-h-screen overflow-x-hidden">
             <Router />
-          </main>
+          </MainContent>
           <Toaster />
         </HelmetProvider>
       </ThemeProvider>
