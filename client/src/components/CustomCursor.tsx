@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/hooks/useTheme';
+import gsap from 'gsap';
 
 const CustomCursor = () => {
   const { isDark } = useTheme();
@@ -11,80 +12,114 @@ const CustomCursor = () => {
   const [cursorText, setCursorText] = useState('');
   const [cursorVariant, setCursorVariant] = useState<'default' | 'button' | 'text' | 'link' | 'image'>('default');
   
-  // Mouse trail effect
-  const trailPointsCount = 10;
+  // Mouse trail effect with more points for richer trail
+  const trailPointsCount = 15;
   const [trailPoints, setTrailPoints] = useState<Array<{x: number, y: number}>>([]);
-  const trailTimer = useRef<NodeJS.Timeout | null>(null);
   
+  // Refs for performance optimization
+  const animationFrameId = useRef<number | null>(null);
+  const mousePosRef = useRef({ x: 0, y: 0 });
+  const targetPosRef = useRef({ x: 0, y: 0 });
+  const isHoveringRef = useRef(false);
+  const cursorVariantRef = useRef<'default' | 'button' | 'text' | 'link' | 'image'>('default');
+  const lastUpdateTimeRef = useRef(0);
+  
+  // Enhanced mouse position tracking with requestAnimationFrame
   useEffect(() => {
     // Only show cursor after it has moved
     const timeout = setTimeout(() => {
       setIsVisible(true);
-    }, 800);
+    }, 500);
     
-    // Start with empty trail points to prevent errors
-    setTrailPoints([]);
-    
-    // Function to update mouse position with smoothing and magnetic effect
+    // Function to detect hover over interactive elements and apply magnetic effect
     const onMouseMove = (e: MouseEvent) => {
-      // Safely update position when component is mounted
-      if (document.body.contains(document.documentElement)) {
-        let newX = e.clientX;
-        let newY = e.clientY;
+      // Store raw position in ref for access in animation frame
+      mousePosRef.current = { x: e.clientX, y: e.clientY };
+      
+      // Calculate magnetic effect for buttons and links
+      const target = e.target as HTMLElement;
+      const isButton = 
+        target.tagName === 'BUTTON' || 
+        target.closest('button') || 
+        target.closest('[role="button"]');
+      
+      const isLink = 
+        target.tagName === 'A' || 
+        target.closest('a');
         
-        // Apply magnetic effect for buttons and links
-        const target = e.target as HTMLElement;
-        const isButton = 
-          target.tagName === 'BUTTON' || 
-          target.closest('button') || 
-          target.closest('[role="button"]');
-        
-        const isLink = 
-          target.tagName === 'A' || 
-          target.closest('a');
+      if (isButton || isLink) {
+        const element = isButton ? 
+          (target.tagName === 'BUTTON' ? target : target.closest('button') || target.closest('[role="button"]')) : 
+          (target.tagName === 'A' ? target : target.closest('a'));
           
-        if (isButton || isLink) {
-          const element = isButton ? 
-            (target.tagName === 'BUTTON' ? target : target.closest('button') || target.closest('[role="button"]')) : 
-            (target.tagName === 'A' ? target : target.closest('a'));
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          const elementCenterX = rect.left + rect.width / 2;
+          const elementCenterY = rect.top + rect.height / 2;
+          
+          const distanceFromCenterX = mousePosRef.current.x - elementCenterX;
+          const distanceFromCenterY = mousePosRef.current.y - elementCenterY;
+          
+          // Determine if we're close to the element
+          const distance = Math.sqrt(distanceFromCenterX * distanceFromCenterX + distanceFromCenterY * distanceFromCenterY);
+          const magnetStrength = Math.min(rect.width, rect.height) * 1.5;
+          
+          if (distance < magnetStrength) {
+            // Calculate magnetic pull (stronger as we get closer)
+            const pull = 1 - (distance / magnetStrength);
+            const pullX = distanceFromCenterX * pull * 0.4; // Stronger effect
+            const pullY = distanceFromCenterY * pull * 0.4;
             
-          if (element) {
-            const rect = element.getBoundingClientRect();
-            const elementCenterX = rect.left + rect.width / 2;
-            const elementCenterY = rect.top + rect.height / 2;
-            
-            const distanceFromCenterX = newX - elementCenterX;
-            const distanceFromCenterY = newY - elementCenterY;
-            
-            // Determine if we're close to the element
-            const distance = Math.sqrt(distanceFromCenterX * distanceFromCenterX + distanceFromCenterY * distanceFromCenterY);
-            const magnetStrength = Math.min(rect.width, rect.height) * 1.5;
-            
-            if (distance < magnetStrength) {
-              // Calculate magnetic pull (stronger as we get closer)
-              const pull = 1 - (distance / magnetStrength);
-              const pullX = distanceFromCenterX * pull * 0.3;
-              const pullY = distanceFromCenterY * pull * 0.3;
-              
-              // Apply magnetic effect to cursor position
-              newX = newX - pullX;
-              newY = newY - pullY;
-            }
+            // Apply magnetic effect to cursor position
+            mousePosRef.current.x = mousePosRef.current.x - pullX;
+            mousePosRef.current.y = mousePosRef.current.y - pullY;
           }
         }
-        
-        setMousePosition({ x: newX, y: newY });
-        
-        // Update trail points with debounce
-        if (trailTimer.current) clearTimeout(trailTimer.current);
-        
-        trailTimer.current = setTimeout(() => {
-          setTrailPoints(prev => {
-            const newPoints = [...prev, { x: newX, y: newY }];
-            return newPoints.slice(-trailPointsCount);
-          });
-        }, 10);
       }
+      
+      // If animation frame not yet running, start it
+      if (!animationFrameId.current) {
+        animationFrameId.current = requestAnimationFrame(updateCursorPosition);
+      }
+    };
+    
+    // Using requestAnimationFrame for ultra-smooth cursor movement
+    const updateCursorPosition = (timestamp: number) => {
+      // Calculate delta time for consistent animation regardless of frame rate
+      const deltaTime = timestamp - lastUpdateTimeRef.current;
+      lastUpdateTimeRef.current = timestamp;
+      
+      // Only update at a maximum of 60fps for performance
+      if (deltaTime > 0) {
+        // Calculate easing factor based on delta time
+        // Lower value = more instant tracking
+        const easeAmount = Math.min(0.3, deltaTime / 16); // 16ms = ~60fps
+        
+        // Calculate target position with smoothed easing
+        targetPosRef.current.x += (mousePosRef.current.x - targetPosRef.current.x) * easeAmount;
+        targetPosRef.current.y += (mousePosRef.current.y - targetPosRef.current.y) * easeAmount;
+        
+        // Update position state
+        setMousePosition({
+          x: Math.round(targetPosRef.current.x * 100) / 100,
+          y: Math.round(targetPosRef.current.y * 100) / 100
+        });
+        
+        // Update trail points for smoother trail
+        setTrailPoints(prev => {
+          // Add current position to the beginning
+          const newPoints = [
+            { x: targetPosRef.current.x, y: targetPosRef.current.y },
+            ...prev
+          ];
+          
+          // Keep only the last N points
+          return newPoints.slice(0, trailPointsCount);
+        });
+      }
+      
+      // Continue animation loop
+      animationFrameId.current = requestAnimationFrame(updateCursorPosition);
     };
     
     // Check if hovering over specific elements
@@ -123,48 +158,108 @@ const CustomCursor = () => {
       // Set appropriate cursor variant based on element type
       if (isButton) {
         setCursorVariant('button');
+        cursorVariantRef.current = 'button';
         setIsHovering(true);
+        isHoveringRef.current = true;
       } else if (isLink) {
         setCursorVariant('link');
+        cursorVariantRef.current = 'link';
         setIsHovering(true);
+        isHoveringRef.current = true;
       } else if (isInput) {
         setCursorVariant('text');
+        cursorVariantRef.current = 'text';
         setIsHovering(true);
+        isHoveringRef.current = true;
       } else if (isImage) {
         setCursorVariant('image');
+        cursorVariantRef.current = 'image';
         setIsHovering(true);
+        isHoveringRef.current = true;
       } else {
         setCursorVariant('default');
+        cursorVariantRef.current = 'default';
         setIsHovering(false);
+        isHoveringRef.current = false;
       }
     };
     
-    // Handle mouse clicks with ripple effect
-    const onMouseDown = () => setIsClicking(true);
-    const onMouseUp = () => setTimeout(() => setIsClicking(false), 150);
+    // Enhanced click effects with ripple effect and haptic feedback
+    const onMouseDown = () => {
+      setIsClicking(true);
+      
+      // Add a subtle scale effect to the page to simulate haptic feedback
+      gsap.to('body', {
+        scale: 0.995,
+        duration: 0.1,
+        ease: 'power2.out'
+      });
+    };
     
-    // Handle cursor leaving the window
-    const onMouseLeave = () => setIsVisible(false);
-    const onMouseEnter = () => setIsVisible(true);
+    const onMouseUp = () => {
+      setTimeout(() => setIsClicking(false), 120);
+      
+      // Restore page scale with a slight bounce effect
+      gsap.to('body', {
+        scale: 1,
+        duration: 0.3,
+        ease: 'elastic.out(1, 0.5)'
+      });
+    };
+    
+    // Handle cursor leaving the window with smooth transition
+    const onMouseLeave = () => {
+      setIsVisible(false);
+      
+      // Add transition effect as cursor exits
+      gsap.to(targetPosRef.current, {
+        scale: 0,
+        opacity: 0,
+        duration: 0.3
+      });
+    };
+    
+    const onMouseEnter = () => {
+      setIsVisible(true);
+      
+      // Add entrance effect when cursor re-enters
+      gsap.from(targetPosRef.current, {
+        scale: 0,
+        opacity: 0,
+        duration: 0.3
+      });
+    };
     
     // Register event listeners
-    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mousemove', onMouseMove, { passive: true });
     document.addEventListener('mouseover', onMouseOver);
     document.addEventListener('mousedown', onMouseDown);
     document.addEventListener('mouseup', onMouseUp);
     document.addEventListener('mouseleave', onMouseLeave);
     document.addEventListener('mouseenter', onMouseEnter);
     
-    // Remove event listeners on cleanup
+    // Start animation loop
+    if (!animationFrameId.current) {
+      animationFrameId.current = requestAnimationFrame(updateCursorPosition);
+    }
+    
+    // Remove event listeners and cancel animation on cleanup
     return () => {
       clearTimeout(timeout);
-      if (trailTimer.current) clearTimeout(trailTimer.current);
+      
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+      
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseover', onMouseOver);
       document.removeEventListener('mousedown', onMouseDown);
       document.removeEventListener('mouseup', onMouseUp);
       document.removeEventListener('mouseleave', onMouseLeave);
       document.removeEventListener('mouseenter', onMouseEnter);
+      
+      // Reset body scale
+      gsap.set('body', { scale: 1 });
     };
   }, []);
   
@@ -196,13 +291,15 @@ const CustomCursor = () => {
               times: [0, 0.2, 1]
             } : { duration: 0.2 }
           }
-        } as any; // Type assertion to avoid TypeScript errors with animation arrays
+        } as any; // Type assertion for animation arrays
       case 'link':
         return {
           ...common,
           scale: isClicking ? 0.8 : 1.2,
           borderColor: 'rgba(var(--primary), 0.8)',
           backgroundColor: 'rgba(var(--primary), 0.1)',
+          borderWidth: 2,
+          boxShadow: '0 0 8px rgba(var(--primary), 0.5)'
         };
       case 'text':
         return {
@@ -219,6 +316,7 @@ const CustomCursor = () => {
           borderColor: 'rgba(255, 255, 255, 0.8)',
           borderWidth: 3,
           mixBlendMode: 'difference',
+          boxShadow: '0 0 15px rgba(255, 255, 255, 0.3)'
         };
       default:
         return {
@@ -230,14 +328,16 @@ const CustomCursor = () => {
     }
   };
   
-  // Create trail points with decreasing opacity
+  // Enhanced trail with motion blur effect
   const getTrailStyles = (index: number) => {
-    const point = trailPoints[trailPoints.length - 1 - index] || { x: 0, y: 0 };
-    const opacity = (trailPointsCount - index) / (trailPointsCount * 1.5);
+    const point = trailPoints[index] || { x: 0, y: 0 };
+    // Opacity decreases faster with larger trail
+    const opacity = (trailPointsCount - index) / (trailPointsCount * 2);
+    // Size decreases with distance
     const scale = (trailPointsCount - index) / trailPointsCount * 0.6;
     
     return {
-      x: point.x, // No need for offset since we use transform in the className
+      x: point.x,
       y: point.y,
       opacity,
       scale,
@@ -263,22 +363,38 @@ const CustomCursor = () => {
           [data-cursor-text] {
             cursor: none !important;
           }
+          
+          /* Motion blur effect for cursor trail */
+          @keyframes trailFade {
+            from { opacity: 0.7; transform: scale(0.8); }
+            to { opacity: 0; transform: scale(0.2); }
+          }
         `
       }} />
     
-      {/* Trail effect */}
-      {trailPoints.map((_, index) => index > 0 && (
-        <motion.div
-          key={`trail-${index}`}
-          className="fixed transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary pointer-events-none z-[9998]"
-          animate={getTrailStyles(index)}
-          transition={{
-            type: 'tween',
-            duration: 0.05,
-            ease: 'linear'
-          }}
-        />
-      ))}
+      {/* Enhanced trail effect with more dots and motion blur */}
+      <AnimatePresence>
+        {trailPoints.map((_, index) => index > 0 && (
+          <motion.div
+            key={`trail-${index}`}
+            className="fixed transform -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none z-[9998]"
+            style={{
+              width: `${Math.max(2, 12 - index)}px`,
+              height: `${Math.max(2, 12 - index)}px`,
+              background: `rgba(var(--primary), ${0.8 - index * 0.05})`,
+              filter: `blur(${Math.min(2, index * 0.2)}px)`,
+              boxShadow: index < 5 ? `0 0 ${6 - index}px rgba(var(--primary), ${0.3 - index * 0.05})` : 'none'
+            }}
+            animate={getTrailStyles(index)}
+            transition={{
+              type: 'tween',
+              duration: 0.02,
+              ease: 'linear'
+            }}
+            exit={{ opacity: 0, scale: 0 }}
+          />
+        ))}
+      </AnimatePresence>
       
       {/* Main cursor */}
       <motion.div
@@ -297,33 +413,68 @@ const CustomCursor = () => {
       >
         {/* Optional text inside cursor */}
         {cursorText && (
-          <span className="text-white text-xs whitespace-nowrap px-2 py-1 rounded-full bg-primary bg-opacity-90">
+          <motion.span 
+            className="text-white text-xs whitespace-nowrap px-2 py-1 rounded-full bg-primary bg-opacity-90"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+          >
             {cursorText}
-          </span>
+          </motion.span>
         )}
       </motion.div>
       
-      {/* Click effect ripple */}
-      {isClicking && (
-        <motion.div
-          className="fixed transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-primary pointer-events-none z-[9998]"
-          initial={{ 
-            opacity: 0.5, 
-            scale: 0.4,
-            x: mousePosition.x,
-            y: mousePosition.y
-          }}
-          animate={{ 
-            opacity: 0,
-            scale: 2
-          }}
-          transition={{
-            duration: 0.5,
-            ease: 'easeOut'
-          }}
-          exit={{ opacity: 0 }}
-        />
-      )}
+      {/* Enhanced click effect ripple with outward wave */}
+      <AnimatePresence>
+        {isClicking && (
+          <>
+            {/* Inner ripple */}
+            <motion.div
+              className="fixed transform -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary pointer-events-none z-[9997]"
+              initial={{ 
+                opacity: 0.8, 
+                scale: 0.4,
+                width: '12px',
+                height: '12px',
+                x: mousePosition.x,
+                y: mousePosition.y
+              }}
+              animate={{ 
+                opacity: 0,
+                scale: 2.5
+              }}
+              exit={{ opacity: 0 }}
+              transition={{
+                duration: 0.6,
+                ease: 'easeOut'
+              }}
+            />
+            
+            {/* Outer ripple - delayed for wave effect */}
+            <motion.div
+              className="fixed transform -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary pointer-events-none z-[9996]"
+              initial={{ 
+                opacity: 0.3, 
+                scale: 0.2,
+                width: '24px',
+                height: '24px',
+                x: mousePosition.x,
+                y: mousePosition.y
+              }}
+              animate={{ 
+                opacity: 0,
+                scale: 3
+              }}
+              exit={{ opacity: 0 }}
+              transition={{
+                duration: 0.8,
+                ease: 'easeOut',
+                delay: 0.1
+              }}
+            />
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 };

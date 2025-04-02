@@ -6,7 +6,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ThreeDModelProps {
   scrollTrigger?: boolean;
-  modelType?: 'laptop' | 'workspace' | 'abstract';
+  modelType?: 'laptop' | 'workspace' | 'abstract' | 'codeScene';
 }
 
 const ThreeDModel = ({ scrollTrigger = false, modelType = 'laptop' }: ThreeDModelProps) => {
@@ -136,17 +136,21 @@ const ThreeDModel = ({ scrollTrigger = false, modelType = 'laptop' }: ThreeDMode
     if (modelType === 'abstract') {
       // Create abstract floating elements
       model = createAbstractModel();
+      // Add particle system background for visual depth
+      addParticleSystem();
     } else if (modelType === 'workspace') {
       // Create developer workspace
       model = createWorkspaceModel();
+      // Add ambient particles for workspace model
+      addParticleSystem(); // Use default values
+    } else if (modelType === 'codeScene') {
+      // Create the code scene model (digital environment)
+      model = createCodeSceneModel();
+      // Add specialized code particles (binary, code symbols)
+      addParticleSystem(); // Use default values
     } else {
       // Default laptop model
       model = createLaptopModel();
-    }
-    
-    // Add particle system background for visual depth
-    if (modelType === 'abstract') {
-      addParticleSystem();
     }
     
     // Add the model to the scene
@@ -1268,50 +1272,441 @@ const ThreeDModel = ({ scrollTrigger = false, modelType = 'laptop' }: ThreeDMode
       return abstractGroup;
     }
     
-    // Add a particle system for background effect
-    function addParticleSystem() {
+    // Create a new advanced code scene model with holographic effects
+    function createCodeSceneModel(): THREE.Group {
+      const codeSceneGroup = new THREE.Group();
+      
+      // Create a circular platform base
+      const platformRadius = 3;
+      const platformGeometry = new THREE.CylinderGeometry(
+        platformRadius,
+        platformRadius * 1.2,
+        0.2,
+        32,
+        1,
+        false
+      );
+      
+      const platformMaterial = new THREE.MeshPhysicalMaterial({
+        color: isDark ? 0x202020 : 0xf0f0f0,
+        metalness: 0.8,
+        roughness: 0.2,
+        reflectivity: 0.8,
+        clearcoat: 0.5,
+        clearcoatRoughness: 0.1,
+        emissive: themeColors.primary,
+        emissiveIntensity: 0.05
+      });
+      
+      const platform = new THREE.Mesh(platformGeometry, platformMaterial);
+      platform.position.y = -0.1;
+      platform.receiveShadow = !isMobile;
+      codeSceneGroup.add(platform);
+      
+      // Add glowing ring around the platform
+      const ringGeometry = new THREE.TorusGeometry(
+        platformRadius * 1.05,
+        0.05,
+        16,
+        64
+      );
+      
+      const ringMaterial = new THREE.MeshBasicMaterial({
+        color: themeColors.primary,
+        transparent: true,
+        opacity: 0.8
+      });
+      
+      const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+      ring.position.y = 0.05;
+      ring.rotation.x = Math.PI / 2;
+      codeSceneGroup.add(ring);
+      
+      // Animate the ring glow
+      gsap.to(ringMaterial, {
+        opacity: 0.4,
+        duration: 2,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      });
+      
+      // Create floating code panels
+      const panelCount = 6;
+      const panelRadius = 2;
+      const panelGroup = new THREE.Group();
+      
+      for (let i = 0; i < panelCount; i++) {
+        // Create panel
+        const angle = (i / panelCount) * Math.PI * 2;
+        const panelWidth = 1.2;
+        const panelHeight = 1.6;
+        
+        const panelGeometry = new THREE.PlaneGeometry(panelWidth, panelHeight);
+        const panelMaterial = new THREE.MeshBasicMaterial({
+          color: isDark ? 0x101010 : 0xfafafa,
+          transparent: true,
+          opacity: 0.8,
+          side: THREE.DoubleSide
+        });
+        
+        const panel = new THREE.Mesh(panelGeometry, panelMaterial);
+        
+        // Position in a circle
+        panel.position.x = Math.cos(angle) * panelRadius;
+        panel.position.z = Math.sin(angle) * panelRadius;
+        panel.position.y = 1.2;
+        
+        // Rotate to face center
+        panel.rotation.y = angle + Math.PI / 2;
+        
+        // Add glow frame to panel
+        const frameGeometry = new THREE.BoxGeometry(
+          panelWidth + 0.1,
+          panelHeight + 0.1,
+          0.05
+        );
+        
+        const frameMaterial = new THREE.MeshBasicMaterial({
+          color: i % 2 === 0 ? themeColors.primary : themeColors.secondary,
+          transparent: true,
+          opacity: 0.5
+        });
+        
+        const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+        frame.position.z = -0.03;
+        panel.add(frame);
+        
+        // Add code content to panel
+        const codeLines = 8;
+        const codeGroup = new THREE.Group();
+        
+        for (let j = 0; j < codeLines; j++) {
+          const lineGeometry = new THREE.PlaneGeometry(
+            0.6 + Math.random() * 0.4,
+            0.04
+          );
+          
+          const lineColor = j % 3 === 0 
+            ? themeColors.primary 
+            : j % 3 === 1 
+              ? themeColors.secondary 
+              : themeColors.accent;
+              
+          const lineMaterial = new THREE.MeshBasicMaterial({
+            color: lineColor,
+            transparent: true,
+            opacity: 0.9
+          });
+          
+          const line = new THREE.Mesh(lineGeometry, lineMaterial);
+          
+          // Position lines to look like code
+          line.position.y = panelHeight * 0.4 - j * 0.15;
+          line.position.x = -panelWidth * 0.3 + Math.random() * 0.1;
+          line.position.z = 0.01;
+          
+          codeGroup.add(line);
+          
+          // Animate typing effect
+          gsap.fromTo(
+            line.scale,
+            { x: 0 },
+            {
+              x: 1,
+              duration: 1 + Math.random(),
+              delay: j * 0.2 + i * 0.3,
+              ease: "steps(10)"
+            }
+          );
+        }
+        
+        panel.add(codeGroup);
+        
+        // Add floating animation
+        gsap.to(panel.position, {
+          y: panel.position.y + 0.2,
+          duration: 2 + Math.random(),
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+          delay: i * 0.2
+        });
+        
+        panelGroup.add(panel);
+      }
+      
+      // Rotate all panels slowly
+      gsap.to(panelGroup.rotation, {
+        y: Math.PI * 2,
+        duration: 40,
+        repeat: -1,
+        ease: "none"
+      });
+      
+      codeSceneGroup.add(panelGroup);
+      
+      // Add central holographic element
+      const hologramGroup = new THREE.Group();
+      
+      // Core sphere
+      const coreGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+      const coreMaterial = new THREE.MeshPhysicalMaterial({
+        color: themeColors.primary,
+        emissive: themeColors.primary,
+        emissiveIntensity: 0.5,
+        transparent: true,
+        opacity: 0.7,
+        metalness: 1,
+        roughness: 0.1,
+        clearcoat: 1,
+        clearcoatRoughness: 0.1
+      });
+      
+      const core = new THREE.Mesh(coreGeometry, coreMaterial);
+      core.position.y = 1.2;
+      hologramGroup.add(core);
+      
+      // Add orbiting rings
+      const ringCount = 3;
+      
+      for (let i = 0; i < ringCount; i++) {
+        const orbitRadius = 0.8 + i * 0.4;
+        const orbitGeometry = new THREE.TorusGeometry(
+          orbitRadius,
+          0.03,
+          8,
+          64
+        );
+        
+        const orbitMaterial = new THREE.MeshBasicMaterial({
+          color: i === 0 ? themeColors.primary : i === 1 ? themeColors.secondary : themeColors.accent,
+          transparent: true,
+          opacity: 0.7,
+          side: THREE.DoubleSide
+        });
+        
+        const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
+        orbit.position.y = 1.2;
+        
+        // Rotate each ring differently
+        orbit.rotation.x = Math.PI / 2 + (i * Math.PI / 4);
+        orbit.rotation.y = i * Math.PI / 3;
+        
+        // Animate each ring
+        gsap.to(orbit.rotation, {
+          x: orbit.rotation.x + Math.PI * 2,
+          y: orbit.rotation.y + Math.PI * 2,
+          duration: 10 + i * 5,
+          repeat: -1,
+          ease: "none"
+        });
+        
+        hologramGroup.add(orbit);
+        
+        // Add particles along the ring orbit
+        const particleCount = 12;
+        
+        for (let j = 0; j < particleCount; j++) {
+          const particleAngle = (j / particleCount) * Math.PI * 2;
+          const particleGeometry = new THREE.SphereGeometry(0.04, 8, 8);
+          const particleMaterial = new THREE.MeshBasicMaterial({
+            color: orbitMaterial.color,
+            transparent: true,
+            opacity: 0.8
+          });
+          
+          const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+          
+          // Position on the ring
+          particle.position.x = Math.cos(particleAngle) * orbitRadius;
+          particle.position.z = Math.sin(particleAngle) * orbitRadius;
+          
+          // Animate particle pulse
+          gsap.to(particle.scale, {
+            x: 1.5,
+            y: 1.5,
+            z: 1.5,
+            duration: 1 + Math.random(),
+            repeat: -1,
+            yoyo: true,
+            delay: j * 0.2,
+            ease: "sine.inOut"
+          });
+          
+          orbit.add(particle);
+        }
+      }
+      
+      // Add a light beam from core to ground
+      const beamGeometry = new THREE.CylinderGeometry(0.1, 0.5, 1.2, 16, 4, true);
+      const beamMaterial = new THREE.MeshBasicMaterial({
+        color: themeColors.primary,
+        transparent: true,
+        opacity: 0.3,
+        side: THREE.DoubleSide
+      });
+      
+      const beam = new THREE.Mesh(beamGeometry, beamMaterial);
+      beam.position.y = 0.6;
+      beam.rotation.x = Math.PI;
+      hologramGroup.add(beam);
+      
+      // Animate beam opacity
+      gsap.to(beamMaterial, {
+        opacity: 0.6,
+        duration: 2,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      });
+      
+      codeSceneGroup.add(hologramGroup);
+      
+      return codeSceneGroup;
+    }
+    
+    // Enhanced and flexible particle system for background effect
+    function addParticleSystem(
+      count?: number, 
+      size?: number, 
+      spread?: number, 
+      isCodeParticles?: boolean
+    ) {
       if (isMobile && particlesRef.current) return; // Skip on mobile if already exists
       
+      if (!sceneRef.current) return;
+      
       // Create a particle system with optimized count for mobile
-      const particleCount = isMobile ? 500 : 2000;
+      const particleCount = count || (isMobile ? 500 : 2000);
+      const particleSize = size || 0.1;
+      const particleSpread = spread || 15;
       const particles = new Float32Array(particleCount * 3);
       const particleSizes = new Float32Array(particleCount);
-      
-      const radius = 15;
+      const particleColors = new Float32Array(particleCount * 3);
       
       for (let i = 0; i < particleCount; i++) {
         const i3 = i * 3;
         
-        // Create particles in a spherical cloud
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.random() * Math.PI;
-        const r = radius * Math.cbrt(Math.random()); // Cube root for more even distribution
-        
-        particles[i3] = r * Math.sin(phi) * Math.cos(theta);
-        particles[i3 + 1] = r * Math.cos(phi);
-        particles[i3 + 2] = r * Math.sin(phi) * Math.sin(theta);
-        
-        // Random sizes for visual interest
-        particleSizes[i] = 0.05 + Math.random() * 0.15;
+        if (isCodeParticles) {
+          // For code particles, create a more structured pattern
+          // Grid-like distribution with some randomness
+          const gridX = Math.floor(i % 10) - 5;
+          const gridY = Math.floor(i / 10) % 10 - 5;
+          const gridZ = Math.floor(i / 100) - 5;
+          
+          particles[i3] = gridX * (particleSpread / 10) + (Math.random() - 0.5) * (particleSpread / 5);
+          particles[i3+1] = gridY * (particleSpread / 10) + (Math.random() - 0.5) * (particleSpread / 5);
+          particles[i3+2] = gridZ * (particleSpread / 10) + (Math.random() - 0.5) * (particleSpread / 5);
+          
+          // Digital appearance
+          particleSizes[i] = Math.random() > 0.8 ? particleSize * 2 : particleSize;
+          
+          // Binary colors (green or blue tones)
+          if (Math.random() > 0.5) {
+            particleColors[i3] = 0.2; // R
+            particleColors[i3+1] = 0.8; // G
+            particleColors[i3+2] = 0.4; // B
+          } else {
+            particleColors[i3] = 0.2; // R
+            particleColors[i3+1] = 0.4; // G
+            particleColors[i3+2] = 0.9; // B
+          }
+        } else {
+          // For normal particles, use a spherical distribution
+          const theta = Math.random() * Math.PI * 2;
+          const phi = Math.random() * Math.PI;
+          const r = particleSpread * Math.cbrt(Math.random()); // Cube root for more even distribution
+          
+          particles[i3] = r * Math.sin(phi) * Math.cos(theta);
+          particles[i3+1] = r * Math.cos(phi);
+          particles[i3+2] = r * Math.sin(phi) * Math.sin(theta);
+          
+          // Randomize sizes for visual interest
+          particleSizes[i] = particleSize * 0.5 + Math.random() * particleSize;
+          
+          // Color based on theme with variations
+          const primaryColor = new THREE.Color(themeColors.primary);
+          const secondaryColor = new THREE.Color(themeColors.secondary);
+          const accentColor = new THREE.Color(themeColors.accent);
+          
+          // Mix colors for more interesting particles
+          let finalColor;
+          const colorRand = Math.random();
+          
+          if (colorRand < 0.7) {
+            finalColor = primaryColor;
+          } else if (colorRand < 0.9) {
+            finalColor = secondaryColor;
+          } else {
+            finalColor = accentColor;
+          }
+          
+          particleColors[i3] = finalColor.r;
+          particleColors[i3+1] = finalColor.g;
+          particleColors[i3+2] = finalColor.b;
+        }
       }
       
       const particleGeometry = new THREE.BufferGeometry();
       particleGeometry.setAttribute('position', new THREE.BufferAttribute(particles, 3));
       particleGeometry.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
+      particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
       
-      // Create a custom shader material for better looking particles
+      // Create optimized particle texture to improve performance
+      const particleTexture = createParticleTexture(isCodeParticles);
+      
       const particleMaterial = new THREE.PointsMaterial({
-        color: isDark ? 0xffffff : 0x000000,
-        size: 0.1,
+        size: particleSize,
         transparent: true,
-        opacity: 0.5,
-        blending: THREE.AdditiveBlending, // Makes particles glow when they overlap
-        sizeAttenuation: true // Particles change size with distance
+        opacity: 0.6,
+        map: particleTexture,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        sizeAttenuation: true,
+        vertexColors: true
       });
       
       const particleSystem = new THREE.Points(particleGeometry, particleMaterial);
-      scene.add(particleSystem);
+      sceneRef.current.add(particleSystem);
       particlesRef.current = particleSystem;
+      
+      // Utility function to create an optimized particle texture
+      function createParticleTexture(isCode = false) {
+        const canvas = document.createElement('canvas');
+        const size = isCode ? 32 : 16; // Higher resolution for code particles
+        canvas.width = size;
+        canvas.height = size;
+        
+        const context = canvas.getContext('2d');
+        if (!context) return null;
+        
+        if (isCode) {
+          // Create binary-looking particles
+          context.fillStyle = 'rgba(255, 255, 255, 0)';
+          context.fillRect(0, 0, size, size);
+          
+          context.font = '20px monospace';
+          context.textAlign = 'center';
+          context.textBaseline = 'middle';
+          context.fillStyle = 'rgba(255, 255, 255, 1)';
+          
+          // Randomly choose 0 or 1 for the binary look
+          context.fillText(Math.random() > 0.5 ? '0' : '1', size/2, size/2);
+        } else {
+          // Create a radial gradient for softer particles
+          const gradient = context.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+          gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+          gradient.addColorStop(0.5, 'rgba(200, 200, 200, 0.5)');
+          gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          
+          context.fillStyle = gradient;
+          context.fillRect(0, 0, size, size);
+        }
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        return texture;
+      }
     }
 
     return () => {

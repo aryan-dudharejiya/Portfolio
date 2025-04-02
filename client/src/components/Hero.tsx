@@ -254,11 +254,9 @@ const Hero = () => {
             {/* Glow effect behind the model */}
             <div className="absolute w-3/4 h-3/4 rounded-full bg-primary/20 blur-3xl" />
             
-            {/* Temporarily replaced 3D model with a simple div for debugging */}
+            {/* Enhanced 3D Model */}
             <div className="w-full h-full relative z-10 flex items-center justify-center">
-              <div className="bg-primary/20 h-[300px] w-[300px] rounded-full flex items-center justify-center">
-                <span className="text-xl font-semibold">3D Model Placeholder</span>
-              </div>
+              <ThreeDModel modelType="codeScene" />
             </div>
             
             {/* Floating badges */}
