@@ -1774,7 +1774,7 @@ const ThreeDModel = ({ scrollTrigger = false, modelType = 'laptop' }: ThreeDMode
   return (
     <div 
       ref={containerRef} 
-      className="w-full h-full cursor-grab active:cursor-grabbing relative"
+      className="w-full h-full relative"
       style={{ touchAction: 'none' }} // Prevent default touch actions on mobile
     >
       {/* Optional loading indicator for slow devices */}

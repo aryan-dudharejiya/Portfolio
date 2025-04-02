@@ -49,7 +49,7 @@ function App() {
       if (initialLoader && initialLoader.parentNode) {
         initialLoader.parentNode.removeChild(initialLoader);
       }
-    }, 1000);
+    }, 500); // Reduced timeout
     
     return () => {
       document.body.style.overflowX = "";
@@ -57,8 +57,13 @@ function App() {
     };
   }, []);
 
+  // Make sure we always render something, even if we're loading
   if (isLoading) {
-    return null; // Initial loader is in the HTML already
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   return (
