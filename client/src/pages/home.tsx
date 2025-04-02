@@ -7,7 +7,6 @@ import Projects from '@/components/Projects';
 import Testimonials from '@/components/Testimonials';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
-import CustomCursor from '@/components/CustomCursor';
 import ParticlesEffect from '@/components/three/ParticlesEffect';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -48,9 +47,6 @@ export default function Home() {
     <div className="relative bg-background min-h-screen">
       {/* Background particle effect - disabled on mobile for performance */}
       {!isMobile && <ParticlesEffect />}
-      
-      {/* Custom cursor - only on desktop */}
-      {!isMobile && <CustomCursor />}
       
       {/* Navbar */}
       <Navbar />

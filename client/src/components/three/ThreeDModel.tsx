@@ -263,8 +263,7 @@ const ThreeDModel = ({ scrollTrigger = false, modelType = 'laptop' }: ThreeDMode
     const handlePointerEnter = () => {
       setIsHovered(true);
       
-      // Set data attribute for custom cursor
-      containerRef.current?.setAttribute('data-cursor-text', 'Drag to Rotate');
+      // No cursor customization needed
       
       // Advanced hover animations
       if (modelRef.current) {
@@ -297,8 +296,7 @@ const ThreeDModel = ({ scrollTrigger = false, modelType = 'laptop' }: ThreeDMode
       setIsHovered(false);
       setIsDragging(false);
       
-      // Remove data attribute for custom cursor
-      containerRef.current?.removeAttribute('data-cursor-text');
+      // No cursor customization needed
       
       // Return to original position with a smoother animation
       if (modelRef.current) {
@@ -328,8 +326,7 @@ const ThreeDModel = ({ scrollTrigger = false, modelType = 'laptop' }: ThreeDMode
     const handlePointerDown = (event: MouseEvent | TouchEvent) => {
       setIsDragging(true);
       
-      // Update cursor data attribute
-      containerRef.current?.setAttribute('data-cursor-text', 'Rotating');
+      // No cursor customization needed
       
       const clientX = 'touches' in event 
         ? event.touches[0].clientX 
@@ -363,12 +360,7 @@ const ThreeDModel = ({ scrollTrigger = false, modelType = 'laptop' }: ThreeDMode
     const handlePointerUp = () => {
       setIsDragging(false);
       
-      // Restore cursor text
-      if (isHovered) {
-        containerRef.current?.setAttribute('data-cursor-text', 'Drag to Rotate');
-      } else {
-        containerRef.current?.removeAttribute('data-cursor-text');
-      }
+      // No cursor customization needed
       
       // Add a nice "release" animation
       if (modelRef.current) {

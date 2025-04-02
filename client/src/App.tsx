@@ -3,7 +3,6 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Home from "./pages/home";
 import { useEffect, useState, lazy, Suspense } from "react";
-import CustomCursor from "./components/CustomCursor";
 import { HelmetProvider } from "react-helmet-async";
 import SEOHead from "./components/SEOHead";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -68,7 +67,6 @@ function App() {
         <HelmetProvider>
           <SEOHead />
           <SkipToContent />
-          <CustomCursor />
           <MainContent className="flex flex-col min-h-screen overflow-x-hidden">
             <Router />
           </MainContent>

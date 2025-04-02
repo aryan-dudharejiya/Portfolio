@@ -79,9 +79,7 @@
   @apply shadow-[5px_5px_10px_rgba(0,0,0,0.05),-5px_-5px_10px_rgba(255,255,255,0.8)] dark:shadow-[5px_5px_10px_rgba(0,0,0,0.2),-5px_-5px_10px_rgba(255,255,255,0.05)];
 }
 
-.custom-cursor {
-  @apply w-8 h-8 border-2 border-primary rounded-full fixed -translate-x-1/2 -translate-y-1/2 pointer-events-none z-[9999] mix-blend-difference transition-transform duration-200;
-}
+
 
 .bg-size-200 {
   background-size: 200% 200%;
@@ -146,9 +144,4 @@
   @apply bg-primary/20 text-primary;
 }
 
-/* Responsive styles */
-@media screen and (max-width: 768px) {
-  .custom-cursor {
-    @apply hidden;
-  }
-}
+
