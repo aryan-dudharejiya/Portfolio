@@ -25,18 +25,62 @@ const CustomCursor = () => {
     // Start with empty trail points to prevent errors
     setTrailPoints([]);
     
-    // Function to update mouse position with smoothing
+    // Function to update mouse position with smoothing and magnetic effect
     const onMouseMove = (e: MouseEvent) => {
       // Safely update position when component is mounted
       if (document.body.contains(document.documentElement)) {
-        setMousePosition({ x: e.clientX, y: e.clientY });
+        let newX = e.clientX;
+        let newY = e.clientY;
+        
+        // Apply magnetic effect for buttons and links
+        const target = e.target as HTMLElement;
+        const isButton = 
+          target.tagName === 'BUTTON' || 
+          target.closest('button') || 
+          target.closest('[role="button"]');
+        
+        const isLink = 
+          target.tagName === 'A' || 
+          target.closest('a');
+          
+        if (isButton || isLink) {
+          const element = isButton ? 
+            (target.tagName === 'BUTTON' ? target : target.closest('button') || target.closest('[role="button"]')) : 
+            (target.tagName === 'A' ? target : target.closest('a'));
+            
+          if (element) {
+            const rect = element.getBoundingClientRect();
+            const elementCenterX = rect.left + rect.width / 2;
+            const elementCenterY = rect.top + rect.height / 2;
+            
+            const distanceFromCenterX = newX - elementCenterX;
+            const distanceFromCenterY = newY - elementCenterY;
+            
+            // Determine if we're close to the element
+            const distance = Math.sqrt(distanceFromCenterX * distanceFromCenterX + distanceFromCenterY * distanceFromCenterY);
+            const magnetStrength = Math.min(rect.width, rect.height) * 1.5;
+            
+            if (distance < magnetStrength) {
+              // Calculate magnetic pull (stronger as we get closer)
+              const pull = 1 - (distance / magnetStrength);
+              const pullX = distanceFromCenterX * pull * 0.3;
+              const pullY = distanceFromCenterY * pull * 0.3;
+              
+              // Apply magnetic effect to cursor position
+              newX = newX - pullX;
+              newY = newY - pullY;
+            }
+          }
+        }
+        
+        setMousePosition({ x: newX, y: newY });
         
         // Update trail points with debounce
         if (trailTimer.current) clearTimeout(trailTimer.current);
         
         trailTimer.current = setTimeout(() => {
           setTrailPoints(prev => {
-            const newPoints = [...prev, { x: e.clientX, y: e.clientY }];
+            const newPoints = [...prev, { x: newX, y: newY }];
             return newPoints.slice(-trailPointsCount);
           });
         }, 10);
@@ -193,8 +237,8 @@ const CustomCursor = () => {
     const scale = (trailPointsCount - index) / trailPointsCount * 0.6;
     
     return {
-      x: point.x - 3, // Offset by half the width
-      y: point.y - 3,
+      x: point.x, // No need for offset since we use transform in the className
+      y: point.y,
       opacity,
       scale,
     };
@@ -226,7 +270,7 @@ const CustomCursor = () => {
       {trailPoints.map((_, index) => index > 0 && (
         <motion.div
           key={`trail-${index}`}
-          className="fixed top-0 left-0 w-2 h-2 rounded-full bg-primary pointer-events-none z-[9998]"
+          className="fixed transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary pointer-events-none z-[9998]"
           animate={getTrailStyles(index)}
           transition={{
             type: 'tween',
@@ -238,11 +282,11 @@ const CustomCursor = () => {
       
       {/* Main cursor */}
       <motion.div
-        className="fixed top-0 left-0 w-12 h-12 rounded-full border-2 pointer-events-none z-[9999] flex items-center justify-center text-xs font-medium"
+        className="fixed transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full border-2 pointer-events-none z-[9999] flex items-center justify-center text-xs font-medium"
         animate={{
           ...getCursorStyles(),
-          x: mousePosition.x - (cursorVariant === 'default' ? 12 : 16),
-          y: mousePosition.y - (cursorVariant === 'default' ? 12 : 16),
+          x: mousePosition.x,
+          y: mousePosition.y,
         } as any}
         transition={{
           type: 'spring',
@@ -262,12 +306,12 @@ const CustomCursor = () => {
       {/* Click effect ripple */}
       {isClicking && (
         <motion.div
-          className="fixed top-0 left-0 w-12 h-12 rounded-full bg-primary pointer-events-none z-[9998]"
+          className="fixed transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-primary pointer-events-none z-[9998]"
           initial={{ 
             opacity: 0.5, 
             scale: 0.4,
-            x: mousePosition.x - 24,
-            y: mousePosition.y - 24
+            x: mousePosition.x,
+            y: mousePosition.y
           }}
           animate={{ 
             opacity: 0,

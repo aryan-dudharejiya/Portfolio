@@ -85,11 +85,18 @@ const ThreeDModel = ({ scrollTrigger = false, modelType = 'laptop' }: ThreeDMode
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     rendererRef.current = renderer;
     
-    // Clear the container before appending
-    if (containerRef.current.childElementCount > 0) {
-      containerRef.current.innerHTML = '';
+    // Clear the container before appending - safer implementation
+    if (containerRef.current) {
+      // Remove only canvas elements to avoid unnecessary DOM operations
+      Array.from(containerRef.current.children).forEach((child) => {
+        if (child instanceof HTMLCanvasElement) {
+          containerRef.current?.removeChild(child);
+        }
+      });
+      
+      // Append the new renderer
+      containerRef.current.appendChild(renderer.domElement);
     }
-    containerRef.current.appendChild(renderer.domElement);
 
     // Enhanced lighting
     const ambientLight = new THREE.AmbientLight(
@@ -1308,18 +1315,49 @@ const ThreeDModel = ({ scrollTrigger = false, modelType = 'laptop' }: ThreeDMode
     }
 
     return () => {
-      // Clean up resources
+      // Cancel animation frame to stop rendering
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
       }
       
-      // Safely remove renderer DOM element
-      if (rendererRef.current && rendererRef.current.domElement) {
-        const parent = rendererRef.current.domElement.parentElement;
-        // Check both that parent exists and contains the element to avoid "not a child" error
-        if (parent && parent.contains(rendererRef.current.domElement)) {
-          parent.removeChild(rendererRef.current.domElement);
+      // Properly dispose of THREE.js resources to prevent memory leaks
+      if (rendererRef.current) {
+        // Dispose of the renderer and its resources
+        rendererRef.current.dispose();
+        
+        // Safely remove renderer DOM element if it exists
+        if (rendererRef.current.domElement) {
+          const parent = rendererRef.current.domElement.parentElement;
+          
+          // Safe check to avoid "not a child" DOM errors
+          if (parent && parent.contains && parent.contains(rendererRef.current.domElement)) {
+            try {
+              parent.removeChild(rendererRef.current.domElement);
+            } catch (error) {
+              console.log('DOM removal error handled gracefully');
+            }
+          }
         }
+      }
+      
+      // Dispose scene resources properly
+      if (sceneRef.current) {
+        // Dispose geometries and materials
+        sceneRef.current.traverse((object) => {
+          if (object instanceof THREE.Mesh) {
+            if (object.geometry) {
+              object.geometry.dispose();
+            }
+            
+            if (object.material) {
+              if (Array.isArray(object.material)) {
+                object.material.forEach((material) => material.dispose());
+              } else {
+                object.material.dispose();
+              }
+            }
+          }
+        });
       }
       
       if (isMobile) {

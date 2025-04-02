@@ -68,8 +68,7 @@ function App() {
         <HelmetProvider>
           <SEOHead />
           <SkipToContent />
-          {/* Temporarily disable CustomCursor for debugging */}
-          {/* <CustomCursor /> */}
+          <CustomCursor />
           <MainContent className="flex flex-col min-h-screen overflow-x-hidden">
             <Router />
           </MainContent>
