@@ -79,8 +79,6 @@
   @apply shadow-[5px_5px_10px_rgba(0,0,0,0.05),-5px_-5px_10px_rgba(255,255,255,0.8)] dark:shadow-[5px_5px_10px_rgba(0,0,0,0.2),-5px_-5px_10px_rgba(255,255,255,0.05)];
 }
 
-
-
 .bg-size-200 {
   background-size: 200% 200%;
 }
@@ -142,6 +140,29 @@
 /* Custom selection color */
 ::selection {
   @apply bg-primary/20 text-primary;
+}
+
+/* Section spacing - Consistent spacing between sections */
+.section-spacing {
+  @apply py-12 md:py-16 lg:py-20;
+}
+
+.section-spacing-sm {
+  @apply py-8 md:py-12 lg:py-14;
+}
+
+.section-spacing-lg {
+  @apply py-16 md:py-20 lg:py-24;
+}
+
+/* Section container - Consistent horizontal padding */
+.section-container {
+  @apply container mx-auto px-4 md:px-6 lg:px-8;
+}
+
+/* Section divider - Optional visual separator between sections */
+.section-divider {
+  @apply w-full max-w-6xl mx-auto h-px bg-border/30 my-4 md:my-5 lg:my-6;
 }
 
 

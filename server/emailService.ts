@@ -62,14 +62,14 @@ export async function sendEmail(message: EmailMessage) {
   
   console.log('Message sent: %s', info.messageId);
   
-  // Only log preview URL in development mode
+  // Only log preview URL in development mode (but don't return it to client)
   if (!process.env.EMAIL_HOST) {
     console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
   }
   
   return {
-    messageId: info.messageId,
-    previewUrl: nodemailer.getTestMessageUrl(info),
+    messageId: info.messageId
+    // Preview URL removed
   };
 }
 

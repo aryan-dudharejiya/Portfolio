@@ -43,17 +43,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Import the email service functions
       const { formatContactEmail, sendEmail } = await import('./emailService');
 
-      // The recipient would typically be your email address
-      const recipient = process.env.EMAIL_RECIPIENT || 'portfolio.owner@example.com';
+      // Set recipient to Aryan's email address
+      const recipient = 'work.aryandudharejiya@gmail.com';
       
       // Format and send the email
       const emailMessage = formatContactEmail({ name, email, subject, message }, recipient);
       const result = await sendEmail(emailMessage);
       
       res.status(200).json({ 
-        message: 'Message sent successfully',
-        // Include the preview URL in development mode for testing
-        previewUrl: process.env.NODE_ENV !== 'production' ? result.previewUrl : undefined 
+        message: 'Message sent successfully'
+        // Preview URL removed as requested
       });
     } catch (error) {
       console.error('Error sending message:', error);

@@ -4,6 +4,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Sun, Moon, Menu, X } from "lucide-react";
+import { Link } from "wouter";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -18,7 +19,6 @@ const Navbar = () => {
     { href: "#services", label: "Services" },
     { href: "#skills", label: "Skills" },
     { href: "#projects", label: "Projects" },
-    { href: "#testimonials", label: "Testimonials" },
     { href: "#contact", label: "Contact" },
   ];
 
@@ -69,7 +69,7 @@ const Navbar = () => {
             : "bg-transparent"
         }`}
       >
-        <div className="container mx-auto px-4 md:px-6">
+        <div className="section-container">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
             <a href="#home" className="text-xl md:text-2xl font-bold">
@@ -100,7 +100,9 @@ const Navbar = () => {
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
-                aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+                aria-label={`Switch to ${
+                  theme === "dark" ? "light" : "dark"
+                } mode`}
                 className="mr-2"
               >
                 {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
