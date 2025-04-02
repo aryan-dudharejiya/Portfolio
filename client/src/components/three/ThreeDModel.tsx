@@ -1767,7 +1767,7 @@ const ThreeDModel = ({ scrollTrigger = false, modelType = 'laptop' }: ThreeDMode
       }
       
       // Remove custom cursor text
-      containerRef.current?.removeAttribute('data-cursor-text');
+      // No cursor customization needed
     };
   }, [theme, isDark, themeColors, scrollTrigger, isMobile, isHovered, isDragging, interactionStartPos, modelRotation, mousePosition, modelType, isInView]);
 
@@ -1776,7 +1776,6 @@ const ThreeDModel = ({ scrollTrigger = false, modelType = 'laptop' }: ThreeDMode
       ref={containerRef} 
       className="w-full h-full cursor-grab active:cursor-grabbing relative"
       style={{ touchAction: 'none' }} // Prevent default touch actions on mobile
-      data-cursor-text={isHovered && !isDragging ? "Drag to Rotate" : undefined}
     >
       {/* Optional loading indicator for slow devices */}
       {!isInView && scrollTrigger && (
