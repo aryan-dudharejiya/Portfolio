@@ -247,7 +247,7 @@ const ThreeDModel = ({
       // Calculate if the model is in view
       const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
 
-      setIsInView(isVisible);
+        setIsInView(isVisible);
 
       if (isVisible && modelRef.current) {
         // Get how far through the viewport the element is (0 to 1)
@@ -257,10 +257,10 @@ const ThreeDModel = ({
         const proximityToCenter = 1 - distanceFromCenter / (viewportHeight / 2);
 
         // Calculate visible ratio for animation
-        const containerVisibleRatio = Math.max(
-          0,
-          Math.min(1, proximityToCenter)
-        );
+          const containerVisibleRatio = Math.max(
+            0,
+            Math.min(1, proximityToCenter)
+          );
 
         // Only scroll-based animations will work (no user interaction)
         if (scrollTrigger) {

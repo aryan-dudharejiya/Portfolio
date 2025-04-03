@@ -34,4 +34,10 @@ export default defineConfig({
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
   },
+  server: {
+    fs: {
+      // Allow serving files from the project root and parent directories
+      allow: [__dirname, path.resolve(__dirname, "..")],
+    },
+  },
 });
